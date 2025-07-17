@@ -1,4 +1,4 @@
-const Schedule = require('../models/schedule');
+const Schedule = require('../models/Schedule');
 
 exports.createSchedule = async (req, res) => {
   try {

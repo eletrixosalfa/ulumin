@@ -1,5 +1,5 @@
 const mqtt = require('mqtt');
-const MqttConfig = require('./models/mqttConfig');
+const MqttConfig = require('../models/mqttConfig');
 
 let client = null;
 
@@ -25,7 +25,22 @@ async function connectMqtt() {
     return new Promise((resolve, reject) => {
       client.on('connect', () => {
         console.log('MQTT conectado!');
+
+        // Subscrever a um tópico de teste
+        client.subscribe('ulumin/test', (err) => {
+          if (err) {
+            console.error('Erro ao se inscrever no tópico:', err);
+          } else {
+            console.log('Inscrito no tópico ulumin/test');
+            client.publish('ulumin/test', 'Olá do servidor via MQTT!');
+          }
+        });
+
         resolve(client);
+      });
+
+      client.on('message', (topic, message) => {
+        console.log(`Mensagem recebida no tópico ${topic}: ${message.toString()}`);
       });
 
       client.on('error', (err) => {

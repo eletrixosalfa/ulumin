@@ -39,11 +39,11 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.error('Erro ao conectar ao MongoDB:', err));
 
 app.get('/', (req, res) => {
-  res.send('API rodando!');
+  res.send('API a funcionar!');
 });
 
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`); 
+  console.log(`Servidor a funcionar na porta ${PORT}`);
 });
 
 const { connectMqtt } = require('./services/mqttClient');

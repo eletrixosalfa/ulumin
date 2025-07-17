@@ -18,7 +18,7 @@ exports.createUsageLog = async (req, res) => {
     await newLog.save();
     res.status(201).json(newLog);
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao criar log de uso.', error: err.message });
+    res.status(500).json({ message: 'Erro ao criar log.', error: err.message });
   }
 };
 
@@ -37,12 +37,12 @@ exports.updateUsageLog = async (req, res) => {
     );
 
     if (!updatedLog) {
-      return res.status(404).json({ message: 'Log de uso não encontrado.' });
+      return res.status(404).json({ message: 'Log não encontrada.' });
     }
 
     res.json(updatedLog);
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao atualizar log de uso.', error: err.message });
+    res.status(500).json({ message: 'Erro ao atualizar log.', error: err.message });
   }
 };
 
@@ -51,6 +51,6 @@ exports.getUsageLogs = async (req, res) => {
     const logs = await UsageLog.find({ owner: req.user.userId }).populate('device');
     res.status(200).json(logs);
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao obter logs de uso.', error: err.message });
+    res.status(500).json({ message: 'Erro ao obter logs.', error: err.message });
   }
 };

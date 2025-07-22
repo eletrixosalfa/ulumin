@@ -1,13 +1,11 @@
 import React from 'react';
-import { Text, View } from 'react-native';
-import Header from './components/Header';
-
-// Dentro do componente principal:
-<Header />
-
+import { NavigationContainer } from '@react-navigation/native';
+import StackNavigator from './src/navigation/StackNavigator';
 
 export default function App() {
   return (
-    <Header />
+    <NavigationContainer>
+      <StackNavigator />
+    </NavigationContainer>
   );
 }

@@ -12,6 +12,9 @@ import {
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getRooms, createRoom, updateRoom, deleteRoom } from '../services/roomsService';
 import styles from '../styles/RoomsScreen.styles';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+
 
 export default function RoomsScreen({ navigation }) {
   const [rooms, setRooms] = useState([]);
@@ -24,6 +27,9 @@ export default function RoomsScreen({ navigation }) {
   const [saving, setSaving] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState('home');
 
+  const { userToken, loading: authLoading } = useContext(AuthContext);
+
+
   const availableIcons = [
     'bed',
     'sofa',
@@ -31,9 +37,12 @@ export default function RoomsScreen({ navigation }) {
     'desk'
   ];
 
-  useEffect(() => {
+useEffect(() => {
+  if (!authLoading && userToken) {
     fetchRooms();
-  }, []);
+  }
+}, [authLoading, userToken]);
+
 
   useEffect(() => {
     navigation.setOptions({

@@ -26,7 +26,7 @@ const devicesCatalog = [
   { id: '1', name: 'Interruptor', category: 'switch', icon: 'light-switch' },
   { id: '2', name: 'Sensor de Movimento', category: 'sensor', icon: 'motion-sensor' },
   { id: '3', name: 'Câmera de Vigilância', category: 'camera', icon: 'cctv' },
-  { id: '4', name: 'Estores', category: 'blinds', icon: 'blinds' },
+  { id: '4', name: 'Estor', category: 'blinds', icon: 'blinds' },
   { id: '5', name: 'Luz', category: 'light', icon: 'lightbulb' },
 ];
 

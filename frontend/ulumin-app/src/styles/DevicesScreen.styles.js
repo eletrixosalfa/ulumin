@@ -88,4 +88,19 @@ export default StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+
+  // Categorias
+  categoryTitle: {
+  fontSize: 18,
+  fontWeight: '700',
+  marginTop: 10,
+  marginBottom: 5,
+  textTransform: 'capitalize',
+},
+separator: {
+  height: 1,
+  backgroundColor: '#ccc',
+  marginVertical: 10,
+},
+
 });

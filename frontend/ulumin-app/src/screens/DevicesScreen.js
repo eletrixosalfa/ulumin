@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'; 
 import {
   View,
   Text,
@@ -7,12 +7,21 @@ import {
   Modal,
   TouchableOpacity,
   Alert,
-  StyleSheet
 } from 'react-native';
 import { getDevices, createDevice, deleteDevice } from '../services/devicesService';
 import styles from '../styles/DevicesScreen.styles';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
+// Lista de categorias
+const categories = [
+  { id: 'switch', name: 'Interruptores', icon: 'light-switch' },
+  { id: 'sensor', name: 'Sensores', icon: 'motion-sensor' },
+  { id: 'camera', name: 'Câmeras', icon: 'cctv' },
+  { id: 'blinds', name: 'Estores', icon: 'blinds' },
+  { id: 'light', name: 'Luzes', icon: 'lightbulb' },
+];
+
+// Lista de dispositivos criados
 const devicesCatalog = [
   { id: '1', name: 'Interruptor', category: 'switch', icon: 'light-switch' },
   { id: '2', name: 'Sensor de Movimento', category: 'sensor', icon: 'motion-sensor' },
@@ -20,37 +29,6 @@ const devicesCatalog = [
   { id: '4', name: 'Estores', category: 'blinds', icon: 'blinds' },
   { id: '5', name: 'Luz', category: 'light', icon: 'lightbulb' },
 ];
-
-// Componente da lista para selecionar dispositivo
-function DeviceSelectionList({ onSelectDevice, selectedId, setSelectedId }) {
-  const handleSelect = (id) => {
-    const device = devicesCatalog.find(d => d.id === id);
-    console.log('Dispositivo escolhido:', device);
-    setSelectedId(id);
-    if (onSelectDevice) onSelectDevice(device);
-  };
-
-  return (
-    <FlatList
-      data={devicesCatalog}
-      keyExtractor={item => item.id}
-      renderItem={({ item }) => {
-        const backgroundColor = item.id === selectedId ? '#6e3b6e' : '#f9c2ff';
-        const color = item.id === selectedId ? 'white' : 'black';
-        return (
-          <TouchableOpacity
-            style={[styles.item, { backgroundColor }]}
-            onPress={() => handleSelect(item.id)}
-          >
-            <Icon name={item.icon} size={30} color={color} style={{ marginRight: 10 }} />
-            <Text style={[styles.title, { color }]}>{item.name}</Text>
-          </TouchableOpacity>
-        );
-      }}
-      extraData={selectedId}
-    />
-  );
-}
 
 export default function DevicesScreen({ route, navigation }) {
   const { roomId, roomName } = route.params;
@@ -62,7 +40,8 @@ export default function DevicesScreen({ route, navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Para seleção do dispositivo no modal
+  // Estados para seleção em 2 passos
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
 
@@ -73,6 +52,7 @@ export default function DevicesScreen({ route, navigation }) {
         <TouchableOpacity
           onPress={() => {
             setModalVisible(true);
+            setSelectedCategory(null);
             setSelectedDevice(null);
             setSelectedId(null);
           }}
@@ -107,15 +87,15 @@ export default function DevicesScreen({ route, navigation }) {
     setSaving(true);
     try {
       console.log('Dispositivo selecionado:', selectedDevice);
-    const createdDevice = await createDevice({
-    name: selectedDevice.name,
-    category: selectedDevice.category,
-    roomId
-});
-
+      const createdDevice = await createDevice({
+        name: selectedDevice.name,
+        category: selectedDevice.category,
+        roomId
+      });
 
       setDevices(prev => [...prev, createdDevice]);
       setModalVisible(false);
+      setSelectedCategory(null);
       setSelectedDevice(null);
       setSelectedId(null);
     } catch (err) {
@@ -165,6 +145,11 @@ export default function DevicesScreen({ route, navigation }) {
     );
   }
 
+  // Filtra dispositivos do catálogo para categoria selecionada
+  const devicesInCategory = selectedCategory
+    ? devicesCatalog.filter(d => d.category === selectedCategory)
+    : [];
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -184,22 +169,108 @@ export default function DevicesScreen({ route, navigation }) {
         )}
       />
 
-      {/* Modal com lista para escolher dispositivo */}
+      {/* Modal para seleção em dois passos */}
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Selecione um dispositivo</Text>
+            <Text
+              style={[
+                styles.modalTitle,
+                { borderBottomWidth: 1, borderBottomColor: '#ccc', paddingBottom: 10, marginBottom: 10 }
+              ]}
+            >
+              {!selectedCategory ? 'Selecione uma categoria' : 'Selecione um dispositivo'}
+            </Text>
 
-            <DeviceSelectionList
-              selectedId={selectedId}
-              setSelectedId={setSelectedId}
-              onSelectDevice={setSelectedDevice}
-            />
+            {!selectedCategory ? (
+              <FlatList
+                data={categories}
+                keyExtractor={item => item.id}
+                ItemSeparatorComponent={() => (
+                  <View
+                    style={{
+                      height: 1,
+                      backgroundColor: '#ccc',
+                      marginVertical: 5,
+                    }}
+                  />
+                )}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[styles.item, { borderBottomWidth: 0 }]}
+                    onPress={() => {
+                      setSelectedCategory(item.id);
+                      setSelectedId(null);
+                      setSelectedDevice(null);
+                    }}
+                  >
+                    <Icon name={item.icon} size={30} style={{ marginRight: 10 }} />
+                    <Text style={styles.title}>{item.name}</Text>
+                  </TouchableOpacity>
+                )}
+                contentContainerStyle={{ paddingBottom: 20 }}
+              />
+            ) : (
+              <>
+                <TouchableOpacity
+                  onPress={() => {
+                    setSelectedCategory(null);
+                    setSelectedId(null);
+                    setSelectedDevice(null);
+                  }}
+                  style={{ marginBottom: 10 }}
+                >
+                  <Text style={{ color: 'blue', fontWeight: '600' }}>← Voltar para categorias</Text>
+                </TouchableOpacity>
 
+                <FlatList
+                  data={devicesInCategory}
+                  keyExtractor={item => item.id}
+                  extraData={selectedId}
+                  ItemSeparatorComponent={() => (
+                    <View
+                      style={{
+                        height: 1,
+                        backgroundColor: '#ccc',
+                        marginVertical: 5,
+                      }}
+                    />
+                  )}
+                  renderItem={({ item }) => {
+                    const backgroundColor = item.id === selectedId ? '#6e3b6e' : '#f9c2ff';
+                    const color = item.id === selectedId ? 'white' : 'black';
+                    return (
+                      <TouchableOpacity
+                        style={[styles.item, { backgroundColor, borderBottomWidth: 0 }]}
+                        onPress={() => {
+                          setSelectedId(item.id);
+                          setSelectedDevice(item);
+                        }}
+                      >
+                        <Icon
+                          name={item.icon}
+                          size={30}
+                          color={color}
+                          style={{ marginRight: 10 }}
+                        />
+                        <Text style={[styles.title, { color }]}>{item.name}</Text>
+                      </TouchableOpacity>
+                    );
+                  }}
+                  contentContainerStyle={{ paddingBottom: 40 }}
+                />
+              </>
+            )}
+
+            {/* Separador visual */}
+            <View style={{ height: 1, backgroundColor: '#ccc', marginVertical: 10 }} />
+
+            {/* Botões */}
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 onPress={() => {
                   setModalVisible(false);
+                  setSelectedCategory(null);
                   setSelectedDevice(null);
                   setSelectedId(null);
                 }}
@@ -211,8 +282,11 @@ export default function DevicesScreen({ route, navigation }) {
 
               <TouchableOpacity
                 onPress={handleAddDevice}
-                disabled={saving}
-                style={styles.buttonSave}
+                disabled={saving || !selectedDevice}
+                style={[
+                  styles.buttonSave,
+                  { opacity: saving || !selectedDevice ? 0.5 : 1 }
+                ]}
               >
                 <Text style={styles.buttonText}>
                   {saving ? 'Adicionando...' : 'Adicionar'}

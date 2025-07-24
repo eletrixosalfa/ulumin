@@ -2,11 +2,12 @@ const Room = require('../models/Room');
 
 exports.createRoom = async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, icon } = req.body;  // adiciona icon aqui
     const newRoom = new Room({
       name,
       description,
-      owner: req.user.userId
+      icon,               // salva o icon
+      owner: req.user.userId,
     });
     await newRoom.save();
     res.status(201).json(newRoom);
@@ -17,11 +18,10 @@ exports.createRoom = async (req, res) => {
 
 exports.getRooms = async (req, res) => {
   try {
-    // Corrigido: parênteses na query e no populate ('devices' no plural, se for o nome correto do campo)
-    const rooms = await Room.find({ owner: req.user.userId }).populate('devices'); 
+    const rooms = await Room.find({ owner: req.user.userId }).populate('devices');
     if (rooms.length === 0) {
-  return res.status(200).json([]);
-      }
+      return res.status(200).json([]);
+    }
     res.status(200).json(rooms);
   } catch (err) {
     res.status(500).json({ message: 'Erro ao obter divisões.', error: err.message });
@@ -32,7 +32,7 @@ exports.updateRoom = async (req, res) => {
   try {
     const updated = await Room.findOneAndUpdate(
       { _id: req.params.id, owner: req.user.userId },
-      req.body,
+      req.body,  // pode receber name, description, icon etc
       { new: true }
     );
     if (!updated) return res.status(404).json({ message: 'Divisão não encontrada.' });

@@ -13,6 +13,7 @@ console.log('Middleware executado');
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('decoded:', decoded);
     req.user = decoded; // Adiciona info do utilizador ao request
     next(); // Passa para a próxima função (rota)
   } catch (err) {

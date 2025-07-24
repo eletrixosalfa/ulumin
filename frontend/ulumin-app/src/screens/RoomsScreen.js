@@ -28,6 +28,7 @@ export default function RoomsScreen({ navigation }) {
     'bed',
     'sofa',
     'toilet',
+    'desk'
   ];
 
   useEffect(() => {

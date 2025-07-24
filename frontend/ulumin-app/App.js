@@ -1,15 +1,14 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import StackNavigator from './src/navigation/StackNavigator';
-import { AuthProvider } from './src/context/AuthContext'; // ajusta o caminho
+import { AuthProvider } from './src/context/AuthContext';
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <AuthProvider>
+    <AuthProvider>
+      <NavigationContainer>
         <StackNavigator />
-      </AuthProvider>
-    </NavigationContainer>
+      </NavigationContainer>
+    </AuthProvider>
   );
 }
-

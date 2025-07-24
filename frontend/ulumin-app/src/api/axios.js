@@ -1,4 +1,15 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Função para receber o token no async storage (React Native)
+export async function getToken() {
+  try {
+    return await AsyncStorage.getItem('token');
+  } catch (e) {
+    console.log('Erro ao ler token:', e);
+    return null;
+  }
+}
 
 const API_BASE_URL = 'https://ulumin-backend.onrender.com/api';
 
@@ -19,15 +30,3 @@ api.interceptors.request.use(
 );
 
 export default api;
-
-// Função para receber o token no async storage (React Native)
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-export async function getToken() {
-  try {
-    return await AsyncStorage.getItem('token');
-  } catch (e) {
-    console.log('Erro ao ler token:', e);
-    return null;
-  }
-}

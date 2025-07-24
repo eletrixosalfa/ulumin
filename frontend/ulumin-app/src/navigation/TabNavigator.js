@@ -47,6 +47,7 @@ function RoomsStack() {
         name="DevicesScreen"
         component={DevicesScreen}
         options={({ route }) => ({
+          // Usa o parâmetro roomName passado na navegação para o título do header
           headerTitle: route.params?.roomName || 'Dispositivos',
         })}
       />
@@ -89,7 +90,7 @@ function SettingsStackScreenWrapper(props) {
             )
           }
           title="Sair"
-          color="#fff"
+          color="#000"
         />
       ),
     });
@@ -120,7 +121,7 @@ export default function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: false,
+        headerShown: false, // Headers são gerenciados pelos Stacks
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
 

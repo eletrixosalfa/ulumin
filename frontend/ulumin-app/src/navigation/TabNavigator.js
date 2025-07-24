@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
+import { Button, Alert } from 'react-native';
+import { AuthContext } from '../context/AuthContext';
 
 import HomeScreen from '../screens/HomeScreen';
 import RoomsScreen from '../screens/RoomsScreen';
+import DevicesScreen from '../screens/DevicesScreen';
 import ScheduleScreen from '../screens/ScheduleScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 
@@ -19,11 +22,9 @@ function HomeStack() {
         headerTitleAlign: 'center',
         headerStyle: { backgroundColor: '#007AFF' },
         headerTintColor: '#fff',
-        //adicionar botões no headerRight e headerLeft
       }}
     >
       <Stack.Screen name="HomeScreen" component={HomeScreen} />
-      {/* outras telas relacionadas ao Home podem entrar aqui */}
     </Stack.Navigator>
   );
 }
@@ -32,13 +33,23 @@ function RoomsStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerTitle: 'Divisões',
         headerTitleAlign: 'center',
         headerStyle: { backgroundColor: '#007AFF' },
         headerTintColor: '#fff',
       }}
     >
-      <Stack.Screen name="RoomsScreen" component={RoomsScreen} />
+      <Stack.Screen
+        name="RoomsScreen"
+        component={RoomsScreen}
+        options={{ headerTitle: 'Divisões' }}
+      />
+      <Stack.Screen
+        name="DevicesScreen"
+        component={DevicesScreen}
+        options={({ route }) => ({
+          headerTitle: route.params?.roomName || 'Dispositivos',
+        })}
+      />
     </Stack.Navigator>
   );
 }
@@ -58,6 +69,35 @@ function ScheduleStack() {
   );
 }
 
+// Wrapper para o SettingsScreen que injeta logout nas opções do header
+function SettingsStackScreenWrapper(props) {
+  const { logout } = useContext(AuthContext);
+
+  React.useLayoutEffect(() => {
+    props.navigation.setOptions({
+      headerRight: () => (
+        <Button
+          onPress={() =>
+            Alert.alert(
+              'Confirmação',
+              'Deseja sair da aplicação?',
+              [
+                { text: 'Cancelar', style: 'cancel' },
+                { text: 'Sair', onPress: logout, style: 'destructive' },
+              ],
+              { cancelable: true }
+            )
+          }
+          title="Sair"
+          color="#fff"
+        />
+      ),
+    });
+  }, [props.navigation, logout]);
+
+  return <SettingsScreen {...props} />;
+}
+
 function SettingsStack() {
   return (
     <Stack.Navigator
@@ -68,7 +108,10 @@ function SettingsStack() {
         headerTintColor: '#fff',
       }}
     >
-      <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
+      <Stack.Screen
+        name="SettingsScreen"
+        component={SettingsStackScreenWrapper}
+      />
     </Stack.Navigator>
   );
 }
@@ -77,7 +120,7 @@ export default function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: false, // desativa header padrão do tab
+        headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
 

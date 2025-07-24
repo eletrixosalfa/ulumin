@@ -2,11 +2,16 @@
   "name": "frontend",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+"scripts": {
+  "android": "react-native run-android",
+  "start": "react-native start"
+}
+,
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "@react-native-community/cli": "^19.1.0"
+  }
 }

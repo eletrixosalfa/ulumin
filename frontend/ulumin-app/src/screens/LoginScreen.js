@@ -1,23 +1,29 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Text, TextInput, Button, TouchableOpacity } from 'react-native';
 import styles from '../styles/LoginScreen.styles';
 import api from '../api/axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthContext } from '../context/AuthContext'; // importa o contexto
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  const { login } = useContext(AuthContext); // pega função login do contexto
+
   const handleLogin = async () => {
     try {
       const response = await api.post('/auth/login', { email, password });
       const token = response.data.token;
-      await AsyncStorage.setItem('token', token);
-      navigation.replace('App');
+      if (!token) throw new Error('Token não recebido');
+
+      await login(token); // chama login do contexto que armazena token e atualiza estado
+
+      // navegação será atualizada automaticamente pelo StackNavigator (condicional)
+
     } catch (error) {
       setErrorMsg('Erro ao fazer login. Verifica email e senha.');
-      console.log('Login error:', error);
+      console.log('Login error:', error.response?.data || error.message);
     }
   };
 

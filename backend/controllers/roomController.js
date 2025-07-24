@@ -20,8 +20,8 @@ exports.getRooms = async (req, res) => {
     // Corrigido: parênteses na query e no populate ('devices' no plural, se for o nome correto do campo)
     const rooms = await Room.find({ owner: req.user.userId }).populate('devices'); 
     if (rooms.length === 0) {
-      return res.status(200).json({ message: 'Nenhuma divisão encontrada.' });
-    }
+  return res.status(200).json([]);
+      }
     res.status(200).json(rooms);
   } catch (err) {
     res.status(500).json({ message: 'Erro ao obter divisões.', error: err.message });

@@ -87,10 +87,11 @@ export default function DevicesScreen({ route, navigation }) {
     setSaving(true);
     try {
       console.log('Dispositivo selecionado:', selectedDevice);
-      const createdDevice = await createDevice({
+      const createdDevice = await createDevice
+      ({
         name: selectedDevice.name,
         category: selectedDevice.category,
-        roomId
+        room: roomId
       });
 
       setDevices(prev => [...prev, createdDevice]);

@@ -137,7 +137,7 @@ useEffect(() => {
     return (
       <View style={styles.containerCentered}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Carregando divisões...</Text>
+        <Text>A carregar divisões...</Text>
       </View>
     );
   }

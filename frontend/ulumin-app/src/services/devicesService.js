@@ -14,9 +14,8 @@ async function getAuthHeaders() {
 export async function getDevices(roomId) {
   try {
     const headers = await getAuthHeaders();
-    const response = await axios.get(`${API_BASE_URL}/devices`, {
+    const response = await axios.get(`${API_BASE_URL}/devices/room/${roomId}`, {
       headers,
-      params: { roomId },
     });
     return response.data;
   } catch (error) {

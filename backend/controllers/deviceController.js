@@ -21,15 +21,23 @@ exports.createDevice = async (req, res) => {
 
 exports.getDevices = async (req, res) => {
   try {
-    const devices = await Device.find({ owner: req.user.userId }).populate('room');
+    const { roomId } = req.params;
+
+    const devices = await Device.find({
+      owner: req.user.userId,
+      room: roomId
+    }).populate('room');
+
     if (devices.length === 0) {
-      return res.status(200).json({ message: 'Nenhum dispositivo encontrado.' });
+      return res.status(200).json([]);
     }
+
     res.status(200).json(devices);
   } catch (err) {
     res.status(500).json({ message: 'Erro ao obter dispositivos.', error: err.message });
   }
 };
+
 
 exports.updateDevice = async (req, res) => {
   try {

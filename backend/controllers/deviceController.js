@@ -2,10 +2,10 @@ const Device = require('../models/Device');
 
 exports.createDevice = async (req, res) => {
   try {
-    const { name, type, status, ipAddress, room } = req.body;
+    const { name, category, status, ipAddress, room } = req.body;
     const newDevice = new Device({
       name,
-      type,
+      category,
       status,
       ipAddress,
       room,

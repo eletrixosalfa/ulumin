@@ -24,8 +24,9 @@ const devicesCatalog = [
 // Componente da lista para selecionar dispositivo
 function DeviceSelectionList({ onSelectDevice, selectedId, setSelectedId }) {
   const handleSelect = (id) => {
-    setSelectedId(id);
     const device = devicesCatalog.find(d => d.id === id);
+    console.log('Dispositivo escolhido:', device);
+    setSelectedId(id);
     if (onSelectDevice) onSelectDevice(device);
   };
 
@@ -105,11 +106,13 @@ export default function DevicesScreen({ route, navigation }) {
     }
     setSaving(true);
     try {
-      const createdDevice = await createDevice({
-  name: selectedDevice.name,
-  category: selectedDevice.category, // << ESSENCIAL
-  roomId
+      console.log('Dispositivo selecionado:', selectedDevice);
+    const createdDevice = await createDevice({
+    name: selectedDevice.name,
+    category: selectedDevice.category,
+    roomId
 });
+
 
       setDevices(prev => [...prev, createdDevice]);
       setModalVisible(false);

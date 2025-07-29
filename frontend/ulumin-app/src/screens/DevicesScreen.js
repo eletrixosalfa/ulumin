@@ -43,7 +43,6 @@ export default function DevicesScreen({ route, navigation }) {
   const [actionModalVisible, setActionModalVisible] = useState(false);
   const [deviceForActions, setDeviceForActions] = useState(null);
 
-
   useEffect(() => {
     navigation.setOptions({
       title: `Dispositivos - ${roomName}`,
@@ -77,7 +76,7 @@ export default function DevicesScreen({ route, navigation }) {
       setDeviceStates(initialStates);
     } catch (err) {
       setError('Erro ao carregar dispositivos.');
-      console.error(err);
+       console.error(err);
     } finally {
       setLoading(false);
     }
@@ -230,31 +229,38 @@ export default function DevicesScreen({ route, navigation }) {
 
 return (
   <View style={styles.container}>
-    <FlatList
-      data={devices}
-      keyExtractor={item => item._id.toString()}
-      numColumns={2}
-      contentContainerStyle={styles.grid}
-      columnWrapperStyle={{ justifyContent: 'space-between' }}
-      renderItem={({ item }) => (
-        <View style={styles.deviceCard}>
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => openDeviceActions(item)} 
-          >
-            <Text style={{ fontSize: 30 }}>⋮</Text>
-          </TouchableOpacity>
-          <Icon name={item.icon || getCategoryIcon(item.category)} size={40} color="#333" style={{ marginBottom: 10 }} />
-          <Text style={styles.deviceName}>{item.name}</Text>
-          <TouchableOpacity
-            style={styles.buttonDelete}
-            onPress={() => handleDeleteDevice(item._id)}
-          >
-            <Text style={styles.buttonText}>🗑️</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    />
+    {devices.length === 0 ? (
+  <View style={styles.containerCentered}>
+    <Text style={{ color: '#555', fontSize: 16 }}>Esta divisão não possui dispositivos.</Text>
+  </View>
+) : (
+  <FlatList
+    data={devices}
+    keyExtractor={item => item._id.toString()}
+    numColumns={2}
+    contentContainerStyle={styles.grid}
+    columnWrapperStyle={{ justifyContent: 'space-between' }}
+    renderItem={({ item }) => (
+      <View style={styles.deviceCard}>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => openDeviceActions(item)} 
+        >
+          <Text style={{ fontSize: 30 }}>⋮</Text>
+        </TouchableOpacity>
+        <Icon name={item.icon || getCategoryIcon(item.category)} size={40} color="#333" style={{ marginBottom: 10 }} />
+        <Text style={styles.deviceName}>{item.name}</Text>
+        <TouchableOpacity
+          style={styles.buttonDelete}
+          onPress={() => handleDeleteDevice(item._id)}
+        >
+          <Text style={styles.buttonText}>🗑️</Text>
+        </TouchableOpacity>
+      </View>
+    )}
+  />
+)}
+
 
     {/* Modal de ações */}
     <Modal visible={actionModalVisible} transparent animationType="slide">

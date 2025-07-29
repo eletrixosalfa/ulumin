@@ -24,6 +24,18 @@ export async function getDevices(roomId) {
   }
 }
 
+export async function getAllDevices() {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await axios.get(`${API_BASE_URL}/devices`, { headers });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar todos os dispositivos:', error.response?.data || error.message);
+    throw new Error('Erro ao buscar dispositivos');
+  }
+}
+
+
 export async function createDevice(device) {
   try {
     const headers = await getAuthHeaders();

@@ -60,7 +60,7 @@ export default function HomeScreen() {
         <Text style={{ color: 'red' }}>{errorMsg}</Text>
       ) : (
         <>
-          <Text style={styles.city}>📍 {city || 'A obter a localização...'}</Text>
+          <Text style={styles.city}>📍 {city || 'A obter localização...'}</Text>
           <Text style={styles.temp}>🌡️ {temperature || 'A carregar...'}</Text>
         </>
       )}

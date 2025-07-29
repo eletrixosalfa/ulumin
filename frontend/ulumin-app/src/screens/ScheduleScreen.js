@@ -5,15 +5,20 @@ import {
   FlatList,
   TouchableOpacity,
   Modal,
-  TextInput,
   Button,
-  StyleSheet,
   Switch,
   Platform,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker'; // se quiser usar picker nativo para hora
-
-import api from '../api/api'; // adaptar conforme tua estrutura
+import { Picker } from '@react-native-picker/picker'; // npm i @react-native-picker/picker
+import DateTimePicker from '@react-native-community/datetimepicker';
+import {
+  getSchedules,
+  createSchedule,
+  updateSchedule,
+  deleteSchedule as deleteScheduleService,
+} from '../services/scheduleService';
+import { getDevices } from '../services/devicesService'; // ajustar se necessário
+import styles from '../styles/ScheduleScreen.styles';
 
 const daysOfWeek = [
   { key: 'mon', label: 'Seg' },
@@ -25,32 +30,41 @@ const daysOfWeek = [
   { key: 'sun', label: 'Dom' },
 ];
 
-export default function ScheduleScreen() {
+export default function ScheduleScreen({ route }) {
+  const { roomId } = route.params || {};
+
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
 
-  // Form state
-  const [device, setDevice] = useState(''); // depois preencher com lista real
+  const [devices, setDevices] = useState([]);
+  const [device, setDevice] = useState('');
   const [action, setAction] = useState('on');
   const [time, setTime] = useState(new Date());
   const [repeatDays, setRepeatDays] = useState([]);
-  const [active, setActive] = useState(true); // toggle ativo (pode guardar na API depois)
+  const [active, setActive] = useState(true);
 
-  // Para mostrar picker hora (se quiser)
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   useEffect(() => {
     fetchSchedules();
   }, []);
 
+  useEffect(() => {
+    console.log('roomId recebido no ScheduleScreen:', roomId);
+    if (!roomId) {
+      console.log('roomId recebido no ScheduleScreen:', roomId);
+      fetchDevices(roomId);
+    }
+  }, [roomId]);
+
   async function fetchSchedules() {
     setLoading(true);
     try {
-      const res = await api.get('/schedules'); // adaptar endpoint
-      if (Array.isArray(res.data)) {
-        setSchedules(res.data);
+      const res = await getSchedules();
+      if (Array.isArray(res)) {
+        setSchedules(res);
       } else {
         setSchedules([]);
       }
@@ -58,6 +72,19 @@ export default function ScheduleScreen() {
       console.error('Erro ao carregar schedules:', e);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchDevices(roomId) {
+    try {
+      const devicesList = await getDevices(roomId); // Passa roomId para buscar os dispositivos da sala
+      setDevices(devicesList);
+      console.log('Dispositivos carregados:', devicesList);
+      if (devicesList.length > 0) {
+        setDevice(devicesList[0]._id);
+      }
+    } catch (e) {
+      console.error('Erro ao carregar dispositivos:', e);
     }
   }
 
@@ -76,13 +103,13 @@ export default function ScheduleScreen() {
     date.setHours(Number(hours), Number(minutes));
     setTime(date);
     setRepeatDays(schedule.repeat || []);
-    setActive(true); // assumir ativo, pode adaptar
+    setActive(true);
     setModalVisible(true);
   }
 
   function openModalToCreate() {
     setEditingSchedule(null);
-    setDevice('');
+    setDevice(devices.length > 0 ? devices[0]._id : '');
     setAction('on');
     setTime(new Date());
     setRepeatDays([]);
@@ -95,22 +122,20 @@ export default function ScheduleScreen() {
       alert('Seleciona um dispositivo.');
       return;
     }
-    // Format time para HH:mm
     const formattedTime = time.toTimeString().slice(0, 5);
-
     const data = {
       device,
       action,
       time: formattedTime,
       repeat: repeatDays,
-      // ativo não está no schema, podes adicionar se quiser
+      active,
     };
 
     try {
       if (editingSchedule) {
-        await api.put(`/schedules/${editingSchedule._id}`, data);
+        await updateSchedule(editingSchedule._id, data);
       } else {
-        await api.post('/schedules', data);
+        await createSchedule(data);
       }
       setModalVisible(false);
       fetchSchedules();
@@ -122,7 +147,7 @@ export default function ScheduleScreen() {
 
   async function deleteSchedule(id) {
     try {
-      await api.delete(`/schedules/${id}`);
+      await deleteScheduleService(id);
       fetchSchedules();
     } catch (e) {
       console.error('Erro ao eliminar schedule:', e);
@@ -145,7 +170,7 @@ export default function ScheduleScreen() {
               <Text>Dispositivo: {item.device.name || item.device._id}</Text>
               <Text>Ação: {item.action.toUpperCase()}</Text>
               <Text>Hora: {item.time}</Text>
-              <Text>Dias: {item.repeat.join(', ') || 'Nenhum'}</Text>
+              <Text>Dias: {item.repeat.length > 0 ? item.repeat.join(', ') : 'Nenhum'}</Text>
               <View style={{ flexDirection: 'row', marginTop: 5 }}>
                 <Button title="Editar" onPress={() => openModalToEdit(item)} />
                 <View style={{ width: 10 }} />
@@ -167,13 +192,12 @@ export default function ScheduleScreen() {
               {editingSchedule ? 'Editar Temporização' : 'Nova Temporização'}
             </Text>
 
-            <Text>Dispositivo (ID):</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="ID do dispositivo"
-              value={device}
-              onChangeText={setDevice}
-            />
+            <Text>Dispositivo:</Text>
+            <Picker selectedValue={device} onValueChange={setDevice}>
+              {devices.map((d) => (
+                <Picker.Item key={d._id} label={d.name} value={d._id} />
+              ))}
+            </Picker>
 
             <Text>Ação:</Text>
             <View style={{ flexDirection: 'row', marginBottom: 10 }}>
@@ -203,9 +227,7 @@ export default function ScheduleScreen() {
 
             <Text>Hora:</Text>
             <TouchableOpacity onPress={() => setShowTimePicker(true)}>
-              <Text style={styles.timeText}>
-                {time.toTimeString().slice(0, 5)}
-              </Text>
+              <Text style={styles.timeText}>{time.toTimeString().slice(0, 5)}</Text>
             </TouchableOpacity>
 
             {showTimePicker && (
@@ -245,7 +267,9 @@ export default function ScheduleScreen() {
               ))}
             </View>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}
+            >
               <Text>Ativo:</Text>
               <Switch value={active} onValueChange={setActive} />
             </View>

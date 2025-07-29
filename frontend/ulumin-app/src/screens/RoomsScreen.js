@@ -159,12 +159,12 @@ useEffect(() => {
           <View style={styles.roomItem}>
             <TouchableOpacity
               style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
-              onPress={() =>
+              onPress={() => {
                 navigation.navigate('DevicesScreen', {
                   roomId: item._id,
                   roomName: item.name,
                 })
-              }
+              }}
             >
               {item.icon && (
                 <MaterialCommunityIcons

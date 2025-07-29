@@ -13,10 +13,12 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+     "plugins": ["expo-location"],
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "permissions": ["ACCESS_FINE_LOCATION"],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

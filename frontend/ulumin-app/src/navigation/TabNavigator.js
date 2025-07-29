@@ -16,18 +16,15 @@ const Stack = createStackNavigator();
 
 function HomeStack() {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerTitle: 'Dashboard',
-        headerTitleAlign: 'center',
-        headerStyle: { backgroundColor: '#007AFF' },
-        headerTintColor: '#fff',
-      }}
-    >
-      <Stack.Screen name="HomeScreen" component={HomeScreen} />
-    </Stack.Navigator>
-  );
-}
+    <Stack.Navigator>
+      <Stack.Screen
+        name="HomeScreen"
+        component={HomeScreen}
+        options={{ headerShown: false}}
+        />
+        </Stack.Navigator>
+        );
+      }
 
 function RoomsStack() {
   return (

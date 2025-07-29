@@ -8,22 +8,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    width: 160,
-    height: 60,
+    width: 200,
+    height: 200,
     marginBottom: 50,
   },
   date: {
-    fontSize: 18,
+    fontSize: 24,
     color: '#eee',
     marginBottom: 50,
   },
   temp: {
-    fontSize: 22,
+    fontSize: 24,
     color: '#ff6600',
+    fontWeight: 'bold',
   },
   city: {
-    fontSize: 18,
+    fontSize: 24,
     color: '#fff',
+    marginBottom: 5,
     marginTop: 10,
   }
 });

@@ -3,11 +3,12 @@ const MqttConfig = require('../models/mqttConfig');
 // Criar ou atualizar configuração MQTT
 exports.createOrUpdateMqttConfig = async (req, res) => {
   try {
-    const { user, pass, port, ssl } = req.body || {};
+    const { host, user, pass, port, ssl } = req.body || {};
 
     const existing = await MqttConfig.findOne({ owner: req.user.userId });
 
     if (existing) {
+      existing.host = host;
       existing.user = user;
       existing.pass = pass;
       existing.port = port;
@@ -17,6 +18,7 @@ exports.createOrUpdateMqttConfig = async (req, res) => {
     }
 
     const newConfig = new MqttConfig({
+      host,
       user,
       pass,
       port,

@@ -12,8 +12,7 @@ import { getDevices, createDevice, deleteDevice } from '../services/devicesServi
 import styles from '../styles/DevicesScreen.styles';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-// Lista de categorias
-const categories = [
+const categories = [ 
   { id: 'switch', name: 'Interruptores', icon: 'light-switch' },
   { id: 'sensor', name: 'Sensores', icon: 'motion-sensor' },
   { id: 'camera', name: 'Câmeras', icon: 'cctv' },
@@ -21,8 +20,7 @@ const categories = [
   { id: 'light', name: 'Luzes', icon: 'lightbulb' },
 ];
 
-// Lista de dispositivos criados
-const devicesCatalog = [
+const devicesCatalog = [  
   { id: '1', name: 'Interruptor', category: 'switch', icon: 'light-switch' },
   { id: '2', name: 'Sensor de Movimento', category: 'sensor', icon: 'motion-sensor' },
   { id: '3', name: 'Câmera de Vigilância', category: 'camera', icon: 'cctv' },
@@ -34,16 +32,17 @@ export default function DevicesScreen({ route, navigation }) {
   const { roomId, roomName } = route.params;
 
   const [devices, setDevices] = useState([]);
+  const [deviceStates, setDeviceStates] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [modalVisible, setModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  // Estados para seleção em 2 passos
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
+  const [actionModalVisible, setActionModalVisible] = useState(false);
+  const [deviceForActions, setDeviceForActions] = useState(null);
+
 
   useEffect(() => {
     navigation.setOptions({
@@ -71,6 +70,11 @@ export default function DevicesScreen({ route, navigation }) {
     try {
       const data = await getDevices(roomId);
       setDevices(data);
+      const initialStates = {};
+      data.forEach(d => {
+        initialStates[d._id] = false; // padrão desligado
+      });
+      setDeviceStates(initialStates);
     } catch (err) {
       setError('Erro ao carregar dispositivos.');
       console.error(err);
@@ -81,20 +85,18 @@ export default function DevicesScreen({ route, navigation }) {
 
   async function handleAddDevice() {
     if (!selectedDevice) {
-      Alert.alert('Seleção necessária', 'Por favor, selecione um dispositivo para adicionar.');
+      Alert.alert('Seleção necessária', 'Por favor, selecione um dispositivo.');
       return;
     }
     setSaving(true);
     try {
-      console.log('Dispositivo selecionado:', selectedDevice);
-      const createdDevice = await createDevice
-      ({
+      const createdDevice = await createDevice({
         name: selectedDevice.name,
         category: selectedDevice.category,
-        room: roomId
+        room: roomId,
       });
-
       setDevices(prev => [...prev, createdDevice]);
+      setDeviceStates(prev => ({ ...prev, [createdDevice._id]: false }));
       setModalVisible(false);
       setSelectedCategory(null);
       setSelectedDevice(null);
@@ -107,33 +109,77 @@ export default function DevicesScreen({ route, navigation }) {
     }
   }
 
-  function handleDeleteDevice(id) {
-    Alert.alert(
-      'Confirmar exclusão',
-      'Deseja excluir este dispositivo?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteDevice(id);
-              setDevices(prev => prev.filter(d => d._id !== id));
-            } catch (err) {
-              console.error('Erro ao excluir dispositivo:', err);
-            }
-          }
-        }
-      ]
-    );
+  function getCategoryIcon(category) {
+  switch (category) {
+    case 'switch':
+      return 'light-switch';
+    case 'sensor':
+      return 'motion-sensor';
+    case 'camera':
+      return 'cctv';
+    case 'blinds':
+      return 'blinds';
+    case 'light':
+      return 'lightbulb';
+    default:
+      return 'devices';
   }
+}
+
+  const getDeviceActions = (device) => {
+  switch (device.category) {
+    case 'light':
+      return ['Ligar', 'Desligar', 'Alternar', 'Temporizado'];
+    case 'switch':
+      return ['Ligar', 'Desligar', 'Alternar', 'Temporizado'];
+    case 'sensor':
+      return ['Ativar', 'Desativar'];
+    case 'camera':
+      return ['Ver feed'];
+    case 'blinds':
+      return ['Subir', 'Descer', 'Parar'];
+    default:
+      return [];
+  }
+};
+
+  function handleDeleteDevice(id) {
+    Alert.alert('Confirmar exclusão', 'Deseja excluir este dispositivo?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteDevice(id);
+            setDevices(prev => prev.filter(d => d._id !== id));
+            setDeviceStates(prev => {
+              const newStates = { ...prev };
+              delete newStates[id];
+              return newStates;
+            });
+          } catch (err) {
+            console.error('Erro ao excluir dispositivo:', err);
+          }
+        },
+      },
+    ]);
+  }
+
+  function openDeviceActions(device) {
+  setDeviceForActions(device);
+  setActionModalVisible(true);
+}
+
+  const devicesInCategory = selectedCategory
+    ? devicesCatalog.filter(d => d.category === selectedCategory)
+    : [];
 
   if (loading) {
     return (
       <View style={styles.containerCentered}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Carregando dispositivos...</Text>
+        <Text>A carregar dispositivos...</Text>
       </View>
     );
   }
@@ -146,157 +192,210 @@ export default function DevicesScreen({ route, navigation }) {
     );
   }
 
-  // Filtra dispositivos do catálogo para categoria selecionada
-  const devicesInCategory = selectedCategory
-    ? devicesCatalog.filter(d => d.category === selectedCategory)
-    : [];
+  <Modal visible={actionModalVisible} transparent animationType="slide">
+  <TouchableOpacity
+    style={styles.modalOverlay}
+    onPress={() => setActionModalVisible(false)}
+    activeOpacity={1}
+  >
+    <View style={styles.modalActionsContainer}>
+      <Text style={styles.modalTitle}>
+        Ações para: {deviceForActions?.name}
+      </Text>
 
-  return (
-    <View style={styles.container}>
-      <FlatList
-        data={devices}
-        keyExtractor={item => item._id.toString()}
-        ListEmptyComponent={<Text>Nenhum dispositivo encontrado.</Text>}
-        renderItem={({ item }) => (
-          <View style={styles.deviceItem}>
-            <Text style={styles.deviceName}>{item.name}</Text>
+      {getDeviceActions(deviceForActions || {}).map((action, index) => (
+        <TouchableOpacity
+          key={index}
+          style={styles.item}
+          onPress={() => {
+            Alert.alert('Executar ação', `${action} em ${deviceForActions?.name}`);
+            setActionModalVisible(false);
+            // Acionar MQTT ou lógica real futuramente
+          }}
+        >
+          <Text>{action}</Text>
+        </TouchableOpacity>
+      ))}
+
+      <TouchableOpacity
+        style={styles.buttonCancel}
+        onPress={() => setActionModalVisible(false)}
+      >
+        <Text style={styles.buttonText}>Fechar</Text>
+      </TouchableOpacity>
+    </View>
+  </TouchableOpacity>
+</Modal>
+
+
+return (
+  <View style={styles.container}>
+    <FlatList
+      data={devices}
+      keyExtractor={item => item._id.toString()}
+      numColumns={2}
+      contentContainerStyle={styles.grid}
+      columnWrapperStyle={{ justifyContent: 'space-between' }}
+      renderItem={({ item }) => (
+        <View style={styles.deviceCard}>
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => openDeviceActions(item)} 
+          >
+            <Text style={{ fontSize: 30 }}>⋮</Text>
+          </TouchableOpacity>
+          <Icon name={item.icon || getCategoryIcon(item.category)} size={40} color="#333" style={{ marginBottom: 10 }} />
+          <Text style={styles.deviceName}>{item.name}</Text>
+          <TouchableOpacity
+            style={styles.buttonDelete}
+            onPress={() => handleDeleteDevice(item._id)}
+          >
+            <Text style={styles.buttonText}>🗑️</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    />
+
+    {/* Modal de ações */}
+    <Modal visible={actionModalVisible} transparent animationType="slide">
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        onPress={() => setActionModalVisible(false)}
+        activeOpacity={1}
+      >
+        <View style={styles.modalActionsContainer}>
+          <Text style={styles.modalTitle}>
+            Ações para: {deviceForActions?.name}
+          </Text>
+
+          {getDeviceActions(deviceForActions || {}).map((action, index) => (
             <TouchableOpacity
-              style={styles.buttonDelete}
-              onPress={() => handleDeleteDevice(item._id)}
+              key={index}
+              style={styles.item}
+              onPress={() => {
+                Alert.alert('Executar ação', `${action} em ${deviceForActions?.name}`);
+                setActionModalVisible(false);
+              }}
             >
-              <Text style={styles.buttonText}>🗑️</Text>
+              <Text>{action}</Text>
             </TouchableOpacity>
-          </View>
-        )}
-      />
+          ))}
 
-      {/* Modal para seleção em dois passos */}
-      <Modal visible={modalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text
-              style={[
-                styles.modalTitle,
-                { borderBottomWidth: 1, borderBottomColor: '#ccc', paddingBottom: 10, marginBottom: 10 }
-              ]}
-            >
-              {!selectedCategory ? 'Selecione uma categoria' : 'Selecione um dispositivo'}
-            </Text>
+          <TouchableOpacity
+            style={styles.buttonCancel}
+            onPress={() => setActionModalVisible(false)}
+          >
+            <Text color="red" style={styles.buttonText}>Fechar</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </Modal>
 
-            {!selectedCategory ? (
-              <FlatList
-                data={categories}
-                keyExtractor={item => item.id}
-                ItemSeparatorComponent={() => (
-                  <View
-                    style={{
-                      height: 1,
-                      backgroundColor: '#ccc',
-                      marginVertical: 5,
-                    }}
-                  />
-                )}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={[styles.item, { borderBottomWidth: 0 }]}
-                    onPress={() => {
-                      setSelectedCategory(item.id);
-                      setSelectedId(null);
-                      setSelectedDevice(null);
-                    }}
-                  >
-                    <Icon name={item.icon} size={30} style={{ marginRight: 10 }} />
-                    <Text style={styles.title}>{item.name}</Text>
-                  </TouchableOpacity>
-                )}
-                contentContainerStyle={{ paddingBottom: 20 }}
-              />
-            ) : (
-              <>
+    {/* Modal de seleção */}
+    <Modal visible={modalVisible} animationType="slide" transparent={true}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>
+            {!selectedCategory ? 'Selecione uma categoria' : 'Selecione um dispositivo'}
+          </Text>
+
+          {!selectedCategory ? (
+            <FlatList
+              data={categories}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => (
                 <TouchableOpacity
+                  style={styles.item}
                   onPress={() => {
-                    setSelectedCategory(null);
-                    setSelectedId(null);
+                    setSelectedCategory(item.id);
                     setSelectedDevice(null);
+                    setSelectedId(null);
                   }}
-                  style={{ marginBottom: 10 }}
                 >
-                  <Text style={{ color: 'blue', fontWeight: '600' }}>← Voltar para categorias</Text>
+                  <Icon name={item.icon} size={30} style={{ marginRight: 10 }} />
+                  <Text style={styles.title}>{item.name}</Text>
                 </TouchableOpacity>
-
-                <FlatList
-                  data={devicesInCategory}
-                  keyExtractor={item => item.id}
-                  extraData={selectedId}
-                  ItemSeparatorComponent={() => (
-                    <View
-                      style={{
-                        height: 1,
-                        backgroundColor: '#ccc',
-                        marginVertical: 5,
-                      }}
-                    />
-                  )}
-                  renderItem={({ item }) => {
-                    const backgroundColor = item.id === selectedId ? '#6e3b6e' : '#f9c2ff';
-                    const color = item.id === selectedId ? 'white' : 'black';
-                    return (
-                      <TouchableOpacity
-                        style={[styles.item, { backgroundColor, borderBottomWidth: 0 }]}
-                        onPress={() => {
-                          setSelectedId(item.id);
-                          setSelectedDevice(item);
-                        }}
-                      >
-                        <Icon
-                          name={item.icon}
-                          size={30}
-                          color={color}
-                          style={{ marginRight: 10 }}
-                        />
-                        <Text style={[styles.title, { color }]}>{item.name}</Text>
-                      </TouchableOpacity>
-                    );
-                  }}
-                  contentContainerStyle={{ paddingBottom: 40 }}
-                />
-              </>
-            )}
-
-            {/* Separador visual */}
-            <View style={{ height: 1, backgroundColor: '#ccc', marginVertical: 10 }} />
-
-            {/* Botões */}
-            <View style={styles.modalButtons}>
+              )}
+            />
+          ) : (
+            <>
               <TouchableOpacity
                 onPress={() => {
-                  setModalVisible(false);
                   setSelectedCategory(null);
                   setSelectedDevice(null);
                   setSelectedId(null);
                 }}
-                disabled={saving}
-                style={styles.buttonCancel}
+                style={{ marginBottom: 10 }}
               >
-                <Text style={styles.buttonText}>Cancelar</Text>
+                <Text style={{ color: 'blue' }}>← Voltar</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={handleAddDevice}
-                disabled={saving || !selectedDevice}
-                style={[
-                  styles.buttonSave,
-                  { opacity: saving || !selectedDevice ? 0.5 : 1 }
-                ]}
-              >
-                <Text style={styles.buttonText}>
-                  {saving ? 'Adicionando...' : 'Adicionar'}
-                </Text>
-              </TouchableOpacity>
-            </View>
+              <FlatList
+                data={devicesInCategory}
+                keyExtractor={item => item.id}
+                extraData={selectedId}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.item,
+                      {
+                        backgroundColor: selectedId === item.id ? '#6e3b6e' : '#f9c2ff',
+                      },
+                    ]}
+                    onPress={() => {
+                      setSelectedId(item.id);
+                      setSelectedDevice(item);
+                    }}
+                  >
+                    <Icon
+                      name={item.icon}
+                      size={30}
+                      color={selectedId === item.id ? 'white' : 'black'}
+                      style={{ marginRight: 10 }}
+                    />
+                    <Text
+                      style={{
+                        color: selectedId === item.id ? 'white' : 'black',
+                      }}
+                    >
+                      {item.name}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </>
+          )}
+
+          <View style={styles.modalButtons}>
+            <TouchableOpacity
+              onPress={() => {
+                setModalVisible(false);
+                setSelectedCategory(null);
+                setSelectedDevice(null);
+                setSelectedId(null);
+              }}
+              disabled={saving}
+              style={styles.buttonCancel}
+            >
+              <Text style={styles.buttonText}>Cancelar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleAddDevice}
+              disabled={saving || !selectedDevice}
+              style={[
+                styles.buttonSave,
+                { opacity: saving || !selectedDevice ? 0.5 : 1 },
+              ]}
+            >
+              <Text style={styles.buttonText}>
+                {saving ? 'A adicionar...' : 'Adicionar'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </Modal>
-    </View>
-  );
+      </View>
+    </Modal>
+  </View>
+);
 }

@@ -116,7 +116,7 @@ useEffect(() => {
   }
 
   function handleDeleteRoom(id) {
-    Alert.alert('Confirmar exclusão', 'Tem certeza que deseja excluir essa divisão?', [
+    Alert.alert('Confirmar exclusão', 'Tem a certeza que deseja excluir essa divisão?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Excluir',
@@ -248,7 +248,7 @@ useEffect(() => {
                 style={styles.buttonSave}
               >
                 <Text style={styles.buttonText}>
-                  {saving ? 'Guardando...' : 'Guardar'}
+                  {saving ? 'A guardar...' : 'Guardar'}
                 </Text>
               </TouchableOpacity>
             </View>

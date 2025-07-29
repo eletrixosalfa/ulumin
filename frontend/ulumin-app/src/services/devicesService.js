@@ -35,6 +35,17 @@ export async function createDevice(device) {
   }
 }
 
+export async function updateDevice(deviceId, deviceData) {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await axios.put(`${API_BASE_URL}/devices/${deviceId}`, deviceData, { headers });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao atualizar dispositivo:', error.response?.data || error.message);
+    throw new Error('Erro ao atualizar dispositivo');
+  }
+}
+
 export async function deleteDevice(deviceId) {
   try {
     const headers = await getAuthHeaders();

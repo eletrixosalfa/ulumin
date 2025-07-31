@@ -2,11 +2,10 @@ const Category = require('../models/Category');
 
 exports.createCategory = async (req, res) => {
   try {
-    const { name, room } = req.body;
+    const { name } = req.body; 
 
     const newCategory = new Category({
       name,
-      room,
       owner: req.user.userId,
     });
 
@@ -17,12 +16,10 @@ exports.createCategory = async (req, res) => {
   }
 };
 
-exports.getCategoriesByRoom = async (req, res) => {
+exports.getCategories = async (req, res) => {
   try {
-    const { roomId } = req.params;
-
+    // busca todas as categorias do usuário (sem filtro por room)
     const categories = await Category.find({
-      room: roomId,
       owner: req.user.userId,
     });
 

@@ -18,6 +18,7 @@ const scheduleRoutes = require('./routes/scheduleRoutes');
 const usagelogRoutes = require('./routes/usagelogRoutes');
 const mqttConfigRoutes = require('./routes/mqttConfigRoutes');
 const updateuserRoutes = require('./routes/updateuserRoutes');
+const deviceCatalogRoutes = require('./routes/deviceCatalogRoutes');
 
 // define a rota protegida
 app.get('/api/test/protected', auth, (req, res) => {
@@ -33,6 +34,7 @@ app.use('/api/schedules', scheduleRoutes);
 app.use('/api/usagelogs', usagelogRoutes);
 app.use('/api/mqttconfig', mqttConfigRoutes);
 app.use('/api/updateuser', updateuserRoutes);
+app.use('/api/devicecatalog', deviceCatalogRoutes);
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB conectado'))

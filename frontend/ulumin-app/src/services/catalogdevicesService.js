@@ -11,14 +11,29 @@ async function getAuthHeaders() {
   };
 }
 
-// Pega todos dispositivos do catálogo (para o picker)
-export async function getAllDevices() {
+export async function getDevicesByRoom(roomId) {
   try {
     const headers = await getAuthHeaders();
-    const response = await axios.get(`${API_BASE_URL}/devicecatalog`, { headers });
+    const response = await axios.get(`${API_BASE_URL}/devices/room/${roomId}`, {
+      headers,
+    });
     return response.data;
   } catch (error) {
-    console.error('Erro ao buscar todos os dispositivos:', error.response?.data || error.message);
-    throw new Error('Erro ao buscar dispositivos');
+    console.error('Erro ao buscar dispositivos por divisão:', error.response?.data || error.message);
+    throw new Error('Erro ao buscar dispositivos por divisão');
+  }
+}
+
+// Função para buscar todas as rooms (divisões)
+export async function getRooms() {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await axios.get(`${API_BASE_URL}/rooms`, {
+      headers,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar rooms:', error.response?.data || error.message);
+    throw new Error('Erro ao buscar rooms');
   }
 }

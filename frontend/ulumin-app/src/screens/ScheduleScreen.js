@@ -17,7 +17,7 @@ import {
   updateSchedule,
   deleteSchedule as deleteScheduleService,
 } from '../services/scheduleService';
-import { getAllDevices } from '../services/catalogdevicesService';
+import { getDevicesByRoom, getRooms } from '../services/catalogdevicesService';
 import styles from '../styles/ScheduleScreen.styles';
 
 const daysOfWeek = [
@@ -36,6 +36,9 @@ export default function ScheduleScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
 
+  const [rooms, setRooms] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+
   const [devices, setDevices] = useState([]);
   const [device, setDevice] = useState('');
   const [action, setAction] = useState('on');
@@ -46,8 +49,45 @@ export default function ScheduleScreen() {
 
   useEffect(() => {
     fetchSchedules();
-    fetchDevices();
+    fetchRooms();
   }, []);
+
+  // Busca as rooms
+  async function fetchRooms() {
+    try {
+      const roomsList = await getRooms();
+      setRooms(roomsList);
+      if (roomsList.length > 0) {
+        setSelectedRoom(roomsList[0]._id);
+      }
+    } catch (e) {
+      console.error('Erro ao carregar rooms:', e);
+    }
+  }
+
+  // Quando selectedRoom muda, buscar os dispositivos daquela room
+  useEffect(() => {
+    if (selectedRoom) {
+      fetchDevices(selectedRoom);
+    }
+  }, [selectedRoom]);
+
+  async function fetchDevices(roomId) {
+    try {
+      const devicesList = await getDevicesByRoom(roomId);
+      console.log('Dispositivos da divisão:', devicesList);
+      setDevices(devicesList);
+      if (devicesList.length > 0) {
+        setDevice(devicesList[0]._id);
+      } else {
+        setDevice('');
+      }
+    } catch (e) {
+      console.error('Erro ao carregar dispositivos:', e);
+      setDevices([]);
+      setDevice('');
+    }
+  }
 
   async function fetchSchedules() {
     setLoading(true);
@@ -58,19 +98,6 @@ export default function ScheduleScreen() {
       console.error('Erro ao carregar schedules:', e);
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function fetchDevices() {
-    try {
-      const devicesList = await getAllDevices();
-      console.log('Devices catalog fetched:', devicesList); // DEBUG
-      setDevices(devicesList);
-      if (devicesList.length > 0) {
-        setDevice(devicesList[0]._id);
-      }
-    } catch (e) {
-      console.error('Erro ao carregar dispositivos:', e);
     }
   }
 
@@ -144,6 +171,16 @@ export default function ScheduleScreen() {
 
   return (
     <View style={styles.container}>
+      <Text style={{ fontWeight: 'bold', marginBottom: 10 }}>Selecione a Divisão:</Text>
+      <Picker
+        selectedValue={selectedRoom}
+        onValueChange={(value) => setSelectedRoom(value)}
+      >
+        {rooms.map((r) => (
+          <Picker.Item key={r._id} label={r.name} value={r._id} />
+        ))}
+      </Picker>
+
       <Button title="Adicionar Temporização" onPress={openModalToCreate} />
 
       {loading ? (

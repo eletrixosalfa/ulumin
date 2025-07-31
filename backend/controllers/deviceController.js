@@ -2,13 +2,14 @@ const Device = require('../models/Device');
 
 exports.createDevice = async (req, res) => {
   try {
-    const { name, category, status, ipAddress, room } = req.body;
+    const { name, icon, status, ipAddress, category } = req.body;
+
     const newDevice = new Device({
       name,
-      category,
+      icon,
       status,
       ipAddress,
-      room,
+      category,
       owner: req.user.userId
     });
 
@@ -19,25 +20,20 @@ exports.createDevice = async (req, res) => {
   }
 };
 
-exports.getDevices = async (req, res) => {
+exports.getDevicesByCategory = async (req, res) => {
   try {
-    const { roomId } = req.params;
+    const { categoryId } = req.params;
 
     const devices = await Device.find({
       owner: req.user.userId,
-      room: roomId
-    }).populate('room');
-
-    if (devices.length === 0) {
-      return res.status(200).json([]);
-    }
+      category: categoryId
+    }).populate('category');
 
     res.status(200).json(devices);
   } catch (err) {
     res.status(500).json({ message: 'Erro ao obter dispositivos.', error: err.message });
   }
 };
-
 
 exports.updateDevice = async (req, res) => {
   try {
@@ -55,7 +51,10 @@ exports.updateDevice = async (req, res) => {
 
 exports.deleteDevice = async (req, res) => {
   try {
-    const deleted = await Device.findOneAndDelete({ _id: req.params.id, owner: req.user.userId });
+    const deleted = await Device.findOneAndDelete({
+      _id: req.params.id,
+      owner: req.user.userId
+    });
     if (!deleted) return res.status(404).json({ message: 'Dispositivo não encontrado.' });
     res.json({ message: 'Dispositivo eliminado.' });
   } catch (err) {

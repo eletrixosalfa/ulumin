@@ -9,6 +9,9 @@ router.post('/', auth, deviceController.createDevice);
 // Obter dispositivos por categoria
 router.get('/category/:categoryId', auth, deviceController.getDevicesByCategory);
 
+// Obter dispositivos por divisão (room)
+router.get('/room/:roomId', auth, deviceController.getDevicesByRoom);
+
 // Atualizar dispositivo
 router.put('/:id', auth, deviceController.updateDevice);
 

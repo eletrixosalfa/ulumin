@@ -2,7 +2,7 @@ const Device = require('../models/Device');
 
 exports.createDevice = async (req, res) => {
   try {
-    const { name, icon, status, ipAddress, category } = req.body;
+    const { name, icon, status, ipAddress, category, room } = req.body;
 
     const newDevice = new Device({
       name,
@@ -10,6 +10,7 @@ exports.createDevice = async (req, res) => {
       status,
       ipAddress,
       category,
+      room,            // certifique-se que o modelo tem esse campo
       owner: req.user.userId
     });
 
@@ -32,6 +33,22 @@ exports.getDevicesByCategory = async (req, res) => {
     res.status(200).json(devices);
   } catch (err) {
     res.status(500).json({ message: 'Erro ao obter dispositivos.', error: err.message });
+  }
+};
+
+// NOVO: pegar dispositivos por room
+exports.getDevicesByRoom = async (req, res) => {
+  try {
+    const { roomId } = req.params;
+
+    const devices = await Device.find({
+      owner: req.user.userId,
+      room: roomId
+    }).populate('category');
+
+    res.status(200).json(devices);
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao obter dispositivos por divisão.', error: err.message });
   }
 };
 

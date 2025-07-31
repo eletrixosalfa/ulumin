@@ -9,7 +9,7 @@ import {
   Switch,
   Platform,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker'; // npm i @react-native-picker/picker
+import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {
   getSchedules,
@@ -17,7 +17,7 @@ import {
   updateSchedule,
   deleteSchedule as deleteScheduleService,
 } from '../services/scheduleService';
-import { getDevices } from '../services/devicesService'; // ajustar se necessário
+import { getCatalogDevices } from '../services/catalogdevicesService'; 
 import styles from '../styles/ScheduleScreen.styles';
 
 const daysOfWeek = [
@@ -49,25 +49,14 @@ export default function ScheduleScreen({ route }) {
 
   useEffect(() => {
     fetchSchedules();
+    fetchDevices(); // <- chamada logo aqui
   }, []);
-
-  useEffect(() => {
-    console.log('roomId recebido no ScheduleScreen:', roomId);
-    if (!roomId) {
-      console.log('roomId recebido no ScheduleScreen:', roomId);
-      fetchDevices(roomId);
-    }
-  }, [roomId]);
 
   async function fetchSchedules() {
     setLoading(true);
     try {
       const res = await getSchedules();
-      if (Array.isArray(res)) {
-        setSchedules(res);
-      } else {
-        setSchedules([]);
-      }
+      setSchedules(Array.isArray(res) ? res : []);
     } catch (e) {
       console.error('Erro ao carregar schedules:', e);
     } finally {
@@ -75,16 +64,15 @@ export default function ScheduleScreen({ route }) {
     }
   }
 
-  async function fetchDevices(roomId) {
+  async function fetchDevices() {
     try {
-      const devicesList = await getDevices(roomId); // Passa roomId para buscar os dispositivos da sala
-      setDevices(devicesList);
-      console.log('Dispositivos carregados:', devicesList);
-      if (devicesList.length > 0) {
-        setDevice(devicesList[0]._id);
+      const catalogDevices = await getCatalogDevices();
+      setDevices(catalogDevices);
+      if (catalogDevices.length > 0) {
+        setDevice(catalogDevices[0]._id);
       }
     } catch (e) {
-      console.error('Erro ao carregar dispositivos:', e);
+      console.error('Erro ao carregar catálogo de dispositivos:', e);
     }
   }
 
@@ -202,10 +190,7 @@ export default function ScheduleScreen({ route }) {
             <Text>Ação:</Text>
             <View style={{ flexDirection: 'row', marginBottom: 10 }}>
               <TouchableOpacity
-                style={[
-                  styles.actionBtn,
-                  action === 'on' && styles.actionBtnSelected,
-                ]}
+                style={[styles.actionBtn, action === 'on' && styles.actionBtnSelected]}
                 onPress={() => setAction('on')}
               >
                 <Text style={action === 'on' ? styles.actionTextSelected : {}}>
@@ -213,10 +198,7 @@ export default function ScheduleScreen({ route }) {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[
-                  styles.actionBtn,
-                  action === 'off' && styles.actionBtnSelected,
-                ]}
+                style={[styles.actionBtn, action === 'off' && styles.actionBtnSelected]}
                 onPress={() => setAction('off')}
               >
                 <Text style={action === 'off' ? styles.actionTextSelected : {}}>
@@ -248,28 +230,17 @@ export default function ScheduleScreen({ route }) {
               {daysOfWeek.map((d) => (
                 <TouchableOpacity
                   key={d.key}
-                  style={[
-                    styles.dayBtn,
-                    repeatDays.includes(d.key) && styles.dayBtnSelected,
-                  ]}
+                  style={[styles.dayBtn, repeatDays.includes(d.key) && styles.dayBtnSelected]}
                   onPress={() => toggleDay(d.key)}
                 >
-                  <Text
-                    style={
-                      repeatDays.includes(d.key)
-                        ? styles.dayTextSelected
-                        : undefined
-                    }
-                  >
+                  <Text style={repeatDays.includes(d.key) ? styles.dayTextSelected : undefined}>
                     {d.label}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <View
-              style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}
-            >
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
               <Text>Ativo:</Text>
               <Switch value={active} onValueChange={setActive} />
             </View>

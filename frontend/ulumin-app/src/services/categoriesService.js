@@ -11,17 +11,19 @@ async function getAuthHeaders() {
   };
 }
 
-export async function getCategoriesByRoom(roomId) {
+// Busca todas as categorias (sem filtro por room)
+export async function getCategories() {
   try {
     const headers = await getAuthHeaders();
-    const response = await axios.get(`${API_BASE_URL}/categories/room/${roomId}`, { headers });
+    const response = await axios.get(`${API_BASE_URL}/categories`, { headers }); // removido roomId da URL
     return response.data;
   } catch (error) {
-    console.error('Erro ao buscar categorias da divisão:', error.response?.data || error.message);
+    console.error('Erro ao buscar categorias:', error.response?.data || error.message);
     throw new Error('Erro ao buscar categorias');
   }
 }
 
+// Cria categoria — sem room associado, só nome
 export async function createCategory(data) {
   try {
     const headers = await getAuthHeaders();

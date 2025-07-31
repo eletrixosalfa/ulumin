@@ -52,6 +52,23 @@ exports.getDevicesByRoom = async (req, res) => {
   }
 };
 
+// NOVO: pegar dispositivos filtrando por categoria E divisão (room)
+exports.getDevicesByCategoryAndRoom = async (req, res) => {
+  try {
+    const { categoryId, roomId } = req.params;
+
+    const devices = await Device.find({
+      owner: req.user.userId,
+      category: categoryId,
+      room: roomId
+    }).populate('category');
+
+    res.status(200).json(devices);
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao obter dispositivos por categoria e divisão.', error: err.message });
+  }
+};
+
 exports.updateDevice = async (req, res) => {
   try {
     const updated = await Device.findOneAndUpdate(

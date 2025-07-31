@@ -11,30 +11,18 @@ async function getAuthHeaders() {
   };
 }
 
-export async function getDevices(roomId) {
+export async function getDevicesByCategory(categoryId) {
   try {
     const headers = await getAuthHeaders();
-    const response = await axios.get(`${API_BASE_URL}/devices/room/${roomId}`, {
+    const response = await axios.get(`${API_BASE_URL}/devices/category/${categoryId}`, {
       headers,
     });
     return response.data;
   } catch (error) {
-    console.error('Erro ao buscar dispositivos:', error.response?.data || error.message);
+    console.error('Erro ao buscar dispositivos por categoria:', error.response?.data || error.message);
     throw new Error('Erro ao buscar dispositivos');
   }
 }
-
-export async function getAllDevices() {
-  try {
-    const headers = await getAuthHeaders();
-    const response = await axios.get(`${API_BASE_URL}/devices`, { headers });
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao buscar todos os dispositivos:', error.response?.data || error.message);
-    throw new Error('Erro ao buscar dispositivos');
-  }
-}
-
 
 export async function createDevice(device) {
   try {

@@ -17,7 +17,11 @@ import {
   updateSchedule,
   deleteSchedule as deleteScheduleService,
 } from '../services/scheduleService';
-import { getDevicesByRoom, getRooms } from '../services/catalogdevicesService';
+import {
+  getDevicesByCategory,
+  getRooms,
+} from '../services/catalogdevicesService';
+import { getCategoriesByRoom } from '../services/categoriesService';
 import styles from '../styles/ScheduleScreen.styles';
 
 const daysOfWeek = [
@@ -39,6 +43,9 @@ export default function ScheduleScreen() {
   const [rooms, setRooms] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
 
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
   const [devices, setDevices] = useState([]);
   const [device, setDevice] = useState('');
   const [action, setAction] = useState('on');
@@ -52,7 +59,6 @@ export default function ScheduleScreen() {
     fetchRooms();
   }, []);
 
-  // Busca as rooms
   async function fetchRooms() {
     try {
       const roomsList = await getRooms();
@@ -65,17 +71,38 @@ export default function ScheduleScreen() {
     }
   }
 
-  // Quando selectedRoom muda, buscar os dispositivos daquela room
   useEffect(() => {
     if (selectedRoom) {
-      fetchDevices(selectedRoom);
+      fetchCategories(selectedRoom);
     }
   }, [selectedRoom]);
 
-  async function fetchDevices(roomId) {
+  async function fetchCategories(roomId) {
     try {
-      const devicesList = await getDevicesByRoom(roomId);
-      console.log('Dispositivos da divisão:', devicesList);
+      const catList = await getCategoriesByRoom(roomId);
+      setCategories(catList);
+      if (catList.length > 0) {
+        setSelectedCategory(catList[0]._id);
+      } else {
+        setSelectedCategory(null);
+        setDevices([]);
+      }
+    } catch (e) {
+      console.error('Erro ao carregar categorias:', e);
+      setCategories([]);
+      setSelectedCategory(null);
+    }
+  }
+
+  useEffect(() => {
+    if (selectedCategory) {
+      fetchDevices(selectedCategory);
+    }
+  }, [selectedCategory]);
+
+  async function fetchDevices(categoryId) {
+    try {
+      const devicesList = await getDevicesByCategory(categoryId);
       setDevices(devicesList);
       if (devicesList.length > 0) {
         setDevice(devicesList[0]._id);
@@ -172,12 +199,16 @@ export default function ScheduleScreen() {
   return (
     <View style={styles.container}>
       <Text style={{ fontWeight: 'bold', marginBottom: 10 }}>Selecione a Divisão:</Text>
-      <Picker
-        selectedValue={selectedRoom}
-        onValueChange={(value) => setSelectedRoom(value)}
-      >
+      <Picker selectedValue={selectedRoom} onValueChange={setSelectedRoom}>
         {rooms.map((r) => (
           <Picker.Item key={r._id} label={r.name} value={r._id} />
+        ))}
+      </Picker>
+
+      <Text style={{ fontWeight: 'bold', marginTop: 10 }}>Categoria:</Text>
+      <Picker selectedValue={selectedCategory} onValueChange={setSelectedCategory}>
+        {categories.map((c) => (
+          <Picker.Item key={c._id} label={c.name} value={c._id} />
         ))}
       </Picker>
 
@@ -198,11 +229,7 @@ export default function ScheduleScreen() {
               <View style={{ flexDirection: 'row', marginTop: 5 }}>
                 <Button title="Editar" onPress={() => openModalToEdit(item)} />
                 <View style={{ width: 10 }} />
-                <Button
-                  title="Eliminar"
-                  color="red"
-                  onPress={() => deleteSchedule(item._id)}
-                />
+                <Button title="Eliminar" color="red" onPress={() => deleteSchedule(item._id)} />
               </View>
             </View>
           )}
@@ -226,26 +253,16 @@ export default function ScheduleScreen() {
             <Text>Ação:</Text>
             <View style={{ flexDirection: 'row', marginBottom: 10 }}>
               <TouchableOpacity
-                style={[
-                  styles.actionBtn,
-                  action === 'on' && styles.actionBtnSelected,
-                ]}
+                style={[styles.actionBtn, action === 'on' && styles.actionBtnSelected]}
                 onPress={() => setAction('on')}
               >
-                <Text style={action === 'on' ? styles.actionTextSelected : {}}>
-                  Ligar
-                </Text>
+                <Text style={action === 'on' ? styles.actionTextSelected : {}}>Ligar</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[
-                  styles.actionBtn,
-                  action === 'off' && styles.actionBtnSelected,
-                ]}
+                style={[styles.actionBtn, action === 'off' && styles.actionBtnSelected]}
                 onPress={() => setAction('off')}
               >
-                <Text style={action === 'off' ? styles.actionTextSelected : {}}>
-                  Desligar
-                </Text>
+                <Text style={action === 'off' ? styles.actionTextSelected : {}}>Desligar</Text>
               </TouchableOpacity>
             </View>
 
@@ -291,9 +308,7 @@ export default function ScheduleScreen() {
               ))}
             </View>
 
-            <View
-              style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}
-            >
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
               <Text>Ativo:</Text>
               <Switch value={active} onValueChange={setActive} />
             </View>

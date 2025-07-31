@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'; 
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,15 +12,17 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import { 
-  getDevicesByCategory, 
-  createDevice, 
-  deleteDevice 
+import {
+  getDevicesByCategoryAndRoom,
+  getDevicesByRoom,
+  createDevice,
+  deleteDevice,
 } from '../services/devicesService';
 
-import { 
+import {
   getCategories,
   createCategory,
+  deleteCategory,
 } from '../services/categoriesService';
 
 import styles from '../styles/DevicesScreen.styles';
@@ -28,62 +30,58 @@ import styles from '../styles/DevicesScreen.styles';
 export default function DevicesScreen({ route, navigation }) {
   const { roomId, roomName } = route.params;
 
-  // Categorias e seleção
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
-
-  // Dispositivos da categoria selecionada
   const [devices, setDevices] = useState([]);
+  const [categoryDevices, setCategoryDevices] = useState([]);
 
-  // Loading e erros
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [loadingDevices, setLoadingDevices] = useState(false);
+  const [loadingCategoryDevices, setLoadingCategoryDevices] = useState(false);
+
   const [error, setError] = useState(null);
 
-  // Modais
   const [modalCategoryVisible, setModalCategoryVisible] = useState(false);
   const [modalDeviceVisible, setModalDeviceVisible] = useState(false);
 
-  // Formulários
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newDeviceName, setNewDeviceName] = useState('');
   const [newDeviceIcon, setNewDeviceIcon] = useState('devices');
 
-  // Ao entrar na tela, carrega categorias
+  const [selectedExistingDevice, setSelectedExistingDevice] = useState(null);
+
   useEffect(() => {
     fetchCategories();
+    fetchDevicesInRoom();
   }, []);
 
-  // Quando seleciona categoria no modal, carrega dispositivos dela
-  useEffect(() => {
-    if (selectedCategory) {
-      fetchDevices();
-      setModalCategoryVisible(false);
-      setModalDeviceVisible(true);
-      setNewDeviceName('');
-      setNewDeviceIcon('devices');
-    } else {
-      setDevices([]);
+  async function fetchDevicesInRoom() {
+    setLoadingDevices(true);
+    setError(null);
+    try {
+      const data = await getDevicesByRoom(roomId);
+      setDevices(data);
+    } catch (err) {
+      setError('Erro ao carregar dispositivos da divisão.');
+      console.error(err);
+    } finally {
+      setLoadingDevices(false);
     }
-  }, [selectedCategory]);
+  }
 
-  // Configura header com só 1 botão "+"
-  useEffect(() => {
-    navigation.setOptions({
-      title: `Dispositivos - ${roomName}`,
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={() => {
-            setModalCategoryVisible(true);
-            setNewCategoryName('');
-          }}
-          style={{ marginRight: 15 }}
-        >
-          <Text style={{ fontSize: 40, color: '#6e3b6e' }}>＋</Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, roomName]);
+  async function fetchDevicesByCategory(categoryId) {
+    setLoadingCategoryDevices(true);
+    setError(null);
+    try {
+      const data = await getDevicesByCategoryAndRoom(categoryId, roomId);
+      setCategoryDevices(data);
+    } catch (err) {
+      setError('Erro ao carregar dispositivos da categoria.');
+      console.error(err);
+    } finally {
+      setLoadingCategoryDevices(false);
+    }
+  }
 
   async function fetchCategories() {
     setLoadingCategories(true);
@@ -99,18 +97,14 @@ export default function DevicesScreen({ route, navigation }) {
     }
   }
 
-  async function fetchDevices() {
-    setLoadingDevices(true);
-    setError(null);
-    try {
-      const data = await getDevicesByCategory(roomId, selectedCategory._id);
-      setDevices(data);
-    } catch (err) {
-      setError('Erro ao carregar dispositivos.');
-      console.error(err);
-    } finally {
-      setLoadingDevices(false);
-    }
+  async function onSelectCategory(category) {
+    setSelectedCategory(category);
+    await fetchDevicesByCategory(category._id);
+    setModalCategoryVisible(false);
+    setModalDeviceVisible(true);
+    setNewDeviceName('');
+    setNewDeviceIcon('devices');
+    setSelectedExistingDevice(null);
   }
 
   async function handleAddCategory() {
@@ -121,9 +115,14 @@ export default function DevicesScreen({ route, navigation }) {
     try {
       const createdCategory = await createCategory({ name: newCategoryName.trim() });
       setCategories(prev => [...prev, createdCategory]);
-      setSelectedCategory(createdCategory);  // seleciona a nova para abrir modal de dispositivo
+      setSelectedCategory(createdCategory);
       setModalCategoryVisible(false);
       setNewCategoryName('');
+      await fetchDevicesByCategory(createdCategory._id);
+      setModalDeviceVisible(true);
+      setNewDeviceName('');
+      setNewDeviceIcon('devices');
+      setSelectedExistingDevice(null);
     } catch (err) {
       console.error('Erro ao criar categoria:', err);
       Alert.alert('Erro', 'Não foi possível criar a categoria.');
@@ -131,6 +130,26 @@ export default function DevicesScreen({ route, navigation }) {
   }
 
   async function handleAddDevice() {
+    if (selectedExistingDevice) {
+      try {
+        const createdDevice = await createDevice({
+          name: selectedExistingDevice.name,
+          category: selectedExistingDevice.category,
+          room: roomId,
+          icon: selectedExistingDevice.icon || 'devices',
+        });
+        setCategoryDevices(prev => [...prev, createdDevice]);
+        setDevices(prev => [...prev, createdDevice]);
+        setModalDeviceVisible(false);
+        setSelectedCategory(null);
+        setSelectedExistingDevice(null);
+      } catch (err) {
+        console.error('Erro ao duplicar dispositivo:', err);
+        Alert.alert('Erro', 'Não foi possível adicionar o dispositivo.');
+      }
+      return;
+    }
+
     if (!newDeviceName.trim()) {
       Alert.alert('Erro', 'O nome do dispositivo não pode estar vazio.');
       return;
@@ -142,22 +161,104 @@ export default function DevicesScreen({ route, navigation }) {
         room: roomId,
         icon: newDeviceIcon,
       });
+
+      setCategoryDevices(prev => [...prev, createdDevice]);
       setDevices(prev => [...prev, createdDevice]);
+
       setModalDeviceVisible(false);
       setNewDeviceName('');
       setNewDeviceIcon('devices');
-      setSelectedCategory(null); // fecha modal dispositivo
+      setSelectedCategory(null);
+      setSelectedExistingDevice(null);
     } catch (err) {
       console.error('Erro ao criar dispositivo:', err);
       Alert.alert('Erro', 'Não foi possível adicionar o dispositivo.');
     }
   }
 
-  if (loadingCategories) {
+async function handleDeleteCategory(category) {
+  Alert.alert(
+    'Confirmar exclusão',
+    `Deseja apagar a categoria "${category.name}"?`,
+    [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Apagar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteCategory(category._id);
+            setCategories(prev => prev.filter(c => c._id !== category._id));
+
+            // Se a categoria deletada for a selecionada, limpar
+            if (selectedCategory?._id === category._id) {
+              setSelectedCategory(null);
+              setModalDeviceVisible(false);
+            }
+
+            Alert.alert('Sucesso', 'Categoria apagada com sucesso.');
+          } catch (err) {
+            console.error('Erro ao apagar categoria:', err);
+            Alert.alert('Erro', 'Não foi possível apagar a categoria.');
+          }
+        },
+      },
+    ]
+  );
+}
+
+
+function handleEditCategory(category) {
+  Alert.alert('Aviso', `Função de editar "${category.name}" ainda não implementada.`);
+}
+
+
+  async function handleDeleteDevice(deviceId) {
+    Alert.alert(
+      'Confirmar exclusão',
+      'Tem certeza que deseja excluir este dispositivo?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteDevice(deviceId);
+              setDevices(prev => prev.filter(d => d._id !== deviceId));
+              setCategoryDevices(prev => prev.filter(d => d._id !== deviceId));
+            } catch (err) {
+              console.error('Erro ao excluir dispositivo:', err);
+              Alert.alert('Erro', 'Não foi possível excluir o dispositivo.');
+            }
+          },
+        },
+      ]
+    );
+  }
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: `Dispositivos - ${roomName}`,
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => {
+            setModalCategoryVisible(true);
+            setNewCategoryName('');
+          }}
+          style={{ marginRight: 15, marginBottom: 5 }}
+        >
+          <Text style={{ fontSize: 50, color: 'black' }}>＋</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, roomName]);
+
+  if (loadingCategories || loadingDevices) {
     return (
       <View style={styles.containerCentered}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text>A carregar categorias...</Text>
+        <Text>A carregar categorias e dispositivos...</Text>
       </View>
     );
   }
@@ -172,16 +273,11 @@ export default function DevicesScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-
-      {/* Lista de dispositivos (sem mostrar categorias no Open Space) */}
-      {loadingDevices ? (
+      {devices.length === 0 ? (
         <View style={styles.containerCentered}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text>A carregar dispositivos...</Text>
-        </View>
-      ) : devices.length === 0 ? (
-        <View style={styles.containerCentered}>
-          <Text style={{ color: '#555', fontSize: 16 }}>Esta divisão não possui dispositivos.</Text>
+          <Text style={{ color: '#555', fontSize: 16 }}>
+            Esta divisão não possui dispositivos.
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -192,14 +288,48 @@ export default function DevicesScreen({ route, navigation }) {
           columnWrapperStyle={{ justifyContent: 'space-between' }}
           renderItem={({ item }) => (
             <View style={styles.deviceCard}>
-              <Icon name={item.icon || 'devices'} size={40} color="#333" style={{ marginBottom: 10 }} />
+              {/* Ícone no topo, centralizado */}
+              <View style={styles.iconContainer}>
+                <Icon name={item.icon || 'devices'} size={40} color="#333" />
+              </View>
+
+              {/* Botão de ação (3 pontinhos) no canto superior direito */}
+              <TouchableOpacity
+                style={styles.actionMenuButton}
+                onPress={() => {
+                  Alert.alert(
+                    'Ações',
+                    `Escolha uma ação para "${item.name}"`,
+                    [
+                      { text: 'Cancelar', style: 'cancel' },
+                      { text: 'Ligar', onPress: () => {/* ação ligar */} },
+                      { text: 'Desligar', onPress: () => {/* ação desligar */} },
+                      { text: 'Temporizar', onPress: () => {/* ação temporizar */} },
+                    ],
+                    { cancelable: true }
+                  );
+                }}
+              >
+                <Icon name="dots-vertical" size={24} color="#666" />
+              </TouchableOpacity>
+
+              {/* Nome do dispositivo abaixo do ícone */}
               <Text style={styles.deviceName}>{item.name}</Text>
+
+              {/* Botão deletar abaixo do nome, centralizado */}
+              <TouchableOpacity
+                onPress={() => handleDeleteDevice(item._id)}
+                style={styles.deleteButton}
+              >
+                <Icon name="delete" size={24} color="#cc0000" />
+              </TouchableOpacity>
             </View>
           )}
         />
       )}
 
-      {/* Modal lista de categorias + adicionar categoria */}
+      {/* Modal seleção / criação categoria */}
+      {/* ... (restante do código do modal igual ao seu original) */}
       <Modal visible={modalCategoryVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -207,19 +337,31 @@ export default function DevicesScreen({ route, navigation }) {
 
             <ScrollView style={{ maxHeight: 200, marginVertical: 10 }}>
               {categories.map(cat => (
-                <TouchableOpacity
-                  key={cat._id}
-                  style={{
-                    padding: 12,
-                    backgroundColor: '#eee',
-                    borderRadius: 8,
-                    marginBottom: 8,
-                  }}
-                  onPress={() => setSelectedCategory(cat)}
-                >
-                  <Text style={{ fontSize: 16 }}>{cat.name}</Text>
-                </TouchableOpacity>
-              ))}
+ <TouchableOpacity
+  key={cat._id}
+  style={{
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderColor: '#eee',
+  }}
+  onPress={() => onSelectCategory(cat)}
+>
+  <Text style={{ fontSize: 16 }}>{cat.name}</Text>
+  <View style={{ flexDirection: 'row', gap: 15 }}>
+    <TouchableOpacity onPress={() => handleEditCategory(cat)}>
+      <Icon name="pencil" size={20} color="#007AFF" />
+    </TouchableOpacity>
+    <TouchableOpacity onPress={() => handleDeleteCategory(cat)}>
+      <Icon name="delete" size={20} color="#cc0000" />
+    </TouchableOpacity>
+  </View>
+</TouchableOpacity>
+
+))}
+
             </ScrollView>
 
             <Text style={{ marginTop: 10 }}>Ou adicione uma nova categoria:</Text>
@@ -258,81 +400,144 @@ export default function DevicesScreen({ route, navigation }) {
         </View>
       </Modal>
 
-      {/* Modal criar dispositivo (com seleção visual de ícones) */}
+      {/* Modal adicionar dispositivo */}
       <Modal visible={modalDeviceVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Adicionar dispositivo em "{selectedCategory?.name}"</Text>
+            <Text style={styles.modalTitle}>
+              Adicionar dispositivo em "{selectedCategory?.name}"
+            </Text>
 
-            <Text style={{ marginTop: 10 }}>Nome do dispositivo:</Text>
-            <TextInput
-              placeholder="Digite o nome"
-              value={newDeviceName}
-              onChangeText={setNewDeviceName}
-              autoFocus
-              style={{
-                borderWidth: 1,
-                borderColor: '#ccc',
-                borderRadius: 5,
-                paddingHorizontal: 8,
-                paddingVertical: 6,
-                marginTop: 5,
-              }}
-            />
+            {loadingCategoryDevices ? (
+              <ActivityIndicator size="small" color="#007AFF" />
+            ) : categoryDevices.length > 0 ? (
+              <View style={{ maxHeight: 150, marginBottom: 10 }}>
+                <Text style={{ fontWeight: 'bold', marginBottom: 5 }}>
+                  Dispositivos já existentes:
+                </Text>
+                <ScrollView>
+                  {categoryDevices.map(dev => {
+                    const selected = selectedExistingDevice?._id === dev._id;
+                    return (
+                      <TouchableOpacity
+                        key={dev._id}
+                        onPress={() => {
+                          if (selectedExistingDevice?._id === dev._id) {
+                            setSelectedExistingDevice(null);
+                            setNewDeviceName('');
+                            setNewDeviceIcon('devices');
+                          } else {
+                            setSelectedExistingDevice(dev);
+                            setNewDeviceName('');
+                            setNewDeviceIcon('devices');
+                          }
+                        }}
+                        style={{
+                          padding: 8,
+                          backgroundColor: selected ? '#6e3b6e' : '#eee',
+                          borderRadius: 8,
+                          marginBottom: 5,
+                        }}
+                      >
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <Icon
+                            name={dev.icon || 'devices'}
+                            size={24}
+                            color={selected ? '#fff' : '#333'}
+                            style={{ marginRight: 10 }}
+                          />
+                          <Text style={{ color: selected ? '#fff' : '#000' }}>{dev.name}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            ) : (
+              <Text style={{ marginBottom: 10, fontStyle: 'italic' }}>
+                Nenhum dispositivo nesta categoria ainda.
+              </Text>
+            )}
 
-            <Text style={{ marginTop: 10 }}>Escolha um ícone:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
-              {[
-                'lightbulb',
-                'fan',
-                'power-plug',
-                'television',
-                'camera',
-                'speaker',
-                'thermometer',
-                'devices',
-              ].map(iconName => (
-                <TouchableOpacity
-                  key={iconName}
-                  onPress={() => setNewDeviceIcon(iconName)}
+            <Text style={{ marginTop: 10 }}>
+              {selectedExistingDevice
+                ? 'Está a duplicar este dispositivo.'
+                : 'Nome do novo dispositivo:'}
+            </Text>
+            {!selectedExistingDevice && (
+              <>
+                <TextInput
+                  placeholder="Digite o nome"
+                  value={newDeviceName}
+                  onChangeText={setNewDeviceName}
+                  autoFocus
                   style={{
-                    marginRight: 15,
-                    padding: 10,
-                    borderRadius: 10,
-                    backgroundColor: newDeviceIcon === iconName ? '#6e3b6e' : '#eee',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 60,
-                    height: 60,
+                    borderWidth: 1,
+                    borderColor: '#ccc',
+                    borderRadius: 5,
+                    paddingHorizontal: 8,
+                    paddingVertical: 6,
+                    marginTop: 5,
                   }}
-                >
-                  <Icon name={iconName} size={30} color={newDeviceIcon === iconName ? 'white' : '#333'} />
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+                />
+
+                <Text style={{ marginTop: 10 }}>Escolha um ícone:</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
+                  {[
+                    'lightbulb',
+                    'fan',
+                    'power-plug',
+                    'television',
+                    'camera',
+                    'speaker',
+                    'thermometer',
+                    'devices',
+                  ].map(iconName => (
+                    <TouchableOpacity
+                      key={iconName}
+                      onPress={() => setNewDeviceIcon(iconName)}
+                      style={{
+                        marginRight: 15,
+                        padding: 5,
+                        borderRadius: 5,
+                        backgroundColor: newDeviceIcon === iconName ? '#6e3b6e' : '#eee',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 50,
+                        height: 50,
+                      }}
+                    >
+                      <Icon
+                        name={iconName}
+                        size={30}
+                        color={newDeviceIcon === iconName ? '#fff' : '#666'}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            )}
 
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 15 }}>
               <TouchableOpacity
                 onPress={() => {
                   setModalDeviceVisible(false);
                   setSelectedCategory(null);
+                  setSelectedExistingDevice(null);
                 }}
                 style={{ marginRight: 15 }}
               >
                 <Text style={{ color: '#666' }}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleAddDevice}
-                disabled={!newDeviceName.trim()}
-                style={{ opacity: newDeviceName.trim() ? 1 : 0.5 }}
-              >
-                <Text style={{ color: '#6e3b6e', fontWeight: 'bold' }}>Guardar</Text>
+              <TouchableOpacity onPress={handleAddDevice} disabled={
+                !selectedExistingDevice && !newDeviceName.trim()
+              } style={{ opacity: (!selectedExistingDevice && !newDeviceName.trim()) ? 0.5 : 1 }}>
+                <Text style={{ color: '#6e3b6e', fontWeight: 'bold' }}>Adicionar</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-
     </View>
   );
 }

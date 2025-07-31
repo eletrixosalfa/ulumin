@@ -11,37 +11,20 @@ async function getAuthHeaders() {
   };
 }
 
-// Busca todas as categorias (sem filtro por room)
 export async function getCategories() {
-  try {
-    const headers = await getAuthHeaders();
-    const response = await axios.get(`${API_BASE_URL}/categories`, { headers }); // removido roomId da URL
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao buscar categorias:', error.response?.data || error.message);
-    throw new Error('Erro ao buscar categorias');
-  }
+  const headers = await getAuthHeaders();
+  const response = await axios.get(`${API_BASE_URL}/categories`, { headers });
+  return response.data;
 }
 
-// Cria categoria — sem room associado, só nome
 export async function createCategory(data) {
-  try {
-    const headers = await getAuthHeaders();
-    const response = await axios.post(`${API_BASE_URL}/categories`, data, { headers });
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao criar categoria:', error.response?.data || error.message);
-    throw new Error('Erro ao criar categoria');
-  }
+  const headers = await getAuthHeaders();
+  const response = await axios.post(`${API_BASE_URL}/categories`, data, { headers });
+  return response.data;
 }
 
 export async function deleteCategory(categoryId) {
-  try {
-    const headers = await getAuthHeaders();
-    const response = await axios.delete(`${API_BASE_URL}/categories/${categoryId}`, { headers });
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao eliminar categoria:', error.response?.data || error.message);
-    throw new Error('Erro ao eliminar categoria');
-  }
+  const headers = await getAuthHeaders();
+  const response = await axios.delete(`${API_BASE_URL}/categories/${categoryId}`, { headers });
+  return response.data;
 }

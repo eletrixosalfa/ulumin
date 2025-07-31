@@ -54,7 +54,7 @@ useEffect(() => {
             setSelectedIcon('home');
             setModalVisible(true);
           }}
-          style={{ marginRight: 20, marginBottom: 5 }}
+          style={{ marginRight: 20}}
         >
           <Text style={{ fontSize: 40, color: 'black' }}>+</Text>
         </TouchableOpacity>

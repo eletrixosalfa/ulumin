@@ -12,7 +12,7 @@ router.get('/category/:categoryId', auth, deviceController.getDevicesByCategory)
 // Obter dispositivos por divisão (room)
 router.get('/room/:roomId', auth, deviceController.getDevicesByRoom);
 
-// **Nova rota: obter dispositivos por categoria e divisão**
+// Obter dispositivos por categoria e divisão
 router.get('/category/:categoryId/room/:roomId', auth, deviceController.getDevicesByCategoryAndRoom);
 
 // Atualizar dispositivo
@@ -20,5 +20,11 @@ router.put('/:id', auth, deviceController.updateDevice);
 
 // Eliminar dispositivo
 router.delete('/:id', auth, deviceController.deleteDevice);
+
+// Adicionar ação
+router.post('/:id/actions', auth, deviceController.addActionToDevice);
+
+// Remover ação (por índice)
+router.delete('/:id/actions/:index', auth, deviceController.removeActionFromDevice);
 
 module.exports = router;

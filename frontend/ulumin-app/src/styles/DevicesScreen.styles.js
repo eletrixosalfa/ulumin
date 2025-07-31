@@ -8,42 +8,6 @@ export default StyleSheet.create({
   grid: {
     padding: 12,
   },
-  deviceCard: {
-    width: '48%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3.84,
-    minHeight: 180,
-  },
-  deviceName: {
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  buttonToggle: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 20,
-  },
-  buttonDelete: {
-    marginTop: 10,
-  },
   containerCentered: {
     flex: 1,
     justifyContent: 'center',
@@ -61,7 +25,7 @@ export default StyleSheet.create({
     padding: 20,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 16,
   },
@@ -70,40 +34,107 @@ export default StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 16,
   },
-  buttonCancel: {
-    backgroundColor: '#ccc',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
+  deviceCard: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 20,
+    marginHorizontal: 5,
+    minHeight: 200,
+    justifyContent: 'center',
+    position: 'relative',
   },
-  buttonSave: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  item: {
-    flexDirection: 'row',
+  iconContainer: {
     alignItems: 'center',
-    padding: 12,
     marginBottom: 8,
-    borderRadius: 8,
-    backgroundColor: '#eee',
   },
-  title: {
+  icon: {
+    alignSelf: 'center',
+  },
+  actionMenuButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    padding: 5,
+  },
+  deviceName: {
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  deleteButton: {
+    alignSelf: 'center',
+    marginTop: 0,
+    padding: 5,
+  },
+  categoryItem: {
+    padding: 12,
+    backgroundColor: '#eee',
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  categoryText: {
     fontSize: 16,
   },
-    menuButton: {
-    position: 'absolute',
-    top: 4,
-    right: 14,
-    zIndex: 1,
-    padding: 4,
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    marginTop: 5,
+    marginBottom: 15,
   },
-  modalActionsContainer: {
-  backgroundColor: '#fff',
-  borderRadius: 12,
-  padding: 20,
-  marginHorizontal: 20,
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  cancelButton: {
+    marginRight: 15,
+  },
+  cancelButtonText: {
+    color: '#666',
+  },
+  confirmButtonText: {
+    color: '#6e3b6e',
+    fontWeight: 'bold',
+  },
+  iconOption: {
+    marginRight: 15,
+    padding: 5,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 50,
+    height: 50,
+  },
+  iconOptionSelected: {
+    backgroundColor: '#6e3b6e',
+  },
+  iconOptionUnselected: {
+    backgroundColor: '#eee',
+  },
+  iconOptionColorSelected: '#fff',
+  iconOptionColorUnselected: '#666',
+  existingDeviceItem: {
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  existingDeviceItemSelected: {
+    backgroundColor: '#6e3b6e',
+  },
+  existingDeviceItemUnselected: {
+    backgroundColor: '#eee',
+  },
+  existingDeviceTextSelected: {
+    color: '#fff',
+  },
+  existingDeviceTextUnselected: {
+    color: '#000',
   },
 });

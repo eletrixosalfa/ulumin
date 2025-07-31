@@ -11,59 +11,14 @@ async function getAuthHeaders() {
   };
 }
 
-export async function getDevices(roomId) {
-  try {
-    const headers = await getAuthHeaders();
-    const response = await axios.get(`${API_BASE_URL}/devices/room/${roomId}`, {
-      headers,
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao buscar dispositivos:', error.response?.data || error.message);
-    throw new Error('Erro ao buscar dispositivos');
-  }
-}
-
+// Pega todos dispositivos do catálogo (para o picker)
 export async function getAllDevices() {
   try {
     const headers = await getAuthHeaders();
-    const response = await axios.get(`${API_BASE_URL}/devices`, { headers });
+    const response = await axios.get(`${API_BASE_URL}/devicecatalog`, { headers });
     return response.data;
   } catch (error) {
     console.error('Erro ao buscar todos os dispositivos:', error.response?.data || error.message);
     throw new Error('Erro ao buscar dispositivos');
-  }
-}
-
-export async function createDevice(device) {
-  try {
-    const headers = await getAuthHeaders();
-    const response = await axios.post(`${API_BASE_URL}/devices`, device, { headers });
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao criar dispositivo:', error.response?.data || error.message);
-    throw new Error('Erro ao criar dispositivo');
-  }
-}
-
-export async function updateDevice(deviceId, deviceData) {
-  try {
-    const headers = await getAuthHeaders();
-    const response = await axios.put(`${API_BASE_URL}/devices/${deviceId}`, deviceData, { headers });
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao atualizar dispositivo:', error.response?.data || error.message);
-    throw new Error('Erro ao atualizar dispositivo');
-  }
-}
-
-export async function deleteDevice(deviceId) {
-  try {
-    const headers = await getAuthHeaders();
-    await axios.delete(`${API_BASE_URL}/devices/${deviceId}`, { headers });
-    return true;
-  } catch (error) {
-    console.error('Erro ao deletar dispositivo:', error.response?.data || error.message);
-    throw new Error('Erro ao deletar dispositivo');
   }
 }

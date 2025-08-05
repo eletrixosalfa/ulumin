@@ -5,8 +5,8 @@ import styles from '../styles/SettingsBottomSheet.styles';
 
 const options = [
   { id: 'settings', label: 'Configurações', style: 'NormalButton', onPress: () => console.log('Configurações clicado') },
-  { id: 'logout', label: 'Sair', style: 'DangerButton', onPress: null }, // vai ser substituído
-];
+  { id: 'logout', label: 'Sair', style: 'DangerButton', onPress: null },
+]
 
 const SettingsBottomSheet = forwardRef(({ logout }, ref) => {
   const confirmLogout = () => {
@@ -26,7 +26,7 @@ const SettingsBottomSheet = forwardRef(({ logout }, ref) => {
   );
 
   return (
-    <Modalize ref={ref} snapPoint={200} modalHeight={300}>
+    <Modalize ref={ref} adjustToContentHeight>
       <View style={styles.container}>
         {data.map(item => (
           <TouchableOpacity

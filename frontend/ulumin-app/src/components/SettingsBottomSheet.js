@@ -3,12 +3,19 @@ import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { Modalize } from 'react-native-modalize';
 import styles from '../styles/SettingsBottomSheet.styles';
 
-const options = [
-  { id: 'settings', label: 'Configurações', style: 'NormalButton', onPress: () => console.log('Configurações clicado') },
-  { id: 'logout', label: 'Sair', style: 'DangerButton', onPress: null },
-]
+const SettingsBottomSheet = forwardRef(({ logout, onSettingsPress }, ref) => {
 
-const SettingsBottomSheet = forwardRef(({ logout }, ref) => {
+  // Função para abrir a tela de configurações e fechar o bottom sheet
+  const handleSettingsPress = () => {
+    if (ref && ref.current) {
+      ref.current.close();
+    }
+    if (onSettingsPress) {
+      onSettingsPress();
+    }
+  };
+
+  // Confirmação para logout
   const confirmLogout = () => {
     Alert.alert(
       'Confirmação',
@@ -21,14 +28,16 @@ const SettingsBottomSheet = forwardRef(({ logout }, ref) => {
     );
   };
 
-  const data = options.map(item =>
-    item.id === 'logout' ? { ...item, onPress: confirmLogout } : item
-  );
+  // Opções com as ações certas
+  const options = [
+    { id: 'settings', label: 'Configurações', style: 'NormalButton', onPress: handleSettingsPress },
+    { id: 'logout', label: 'Sair', style: 'DangerButton', onPress: confirmLogout },
+  ];
 
   return (
     <Modalize ref={ref} adjustToContentHeight>
       <View style={styles.container}>
-        {data.map(item => (
+        {options.map(item => (
           <TouchableOpacity
             key={item.id}
             style={styles[item.style]}

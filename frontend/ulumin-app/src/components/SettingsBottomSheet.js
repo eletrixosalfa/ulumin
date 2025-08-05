@@ -6,14 +6,16 @@ import styles from '../styles/SettingsBottomSheet.styles';
 const SettingsBottomSheet = forwardRef(({ logout, onSettingsPress }, ref) => {
 
   // Função para abrir a tela de configurações e fechar o bottom sheet
-  const handleSettingsPress = () => {
-    if (ref && ref.current) {
-      ref.current.close();
-    }
-    if (onSettingsPress) {
-      onSettingsPress();
-    }
-  };
+ const handleSettingsPress = () => {
+  if (ref && ref.current) {
+    ref.current.close();
+  }
+  if (typeof onSettingsPress === 'function') {
+    onSettingsPress();
+  } else {
+    console.warn('onSettingsPress não está definido');
+  }
+};
 
   // Confirmação para logout
   const confirmLogout = () => {

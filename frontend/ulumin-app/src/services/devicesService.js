@@ -45,3 +45,17 @@ export async function getDevicesByCategoryAndRoom(categoryId, roomId) {
   const response = await axios.get(`${API_BASE_URL}/devices/category/${categoryId}/room/${roomId}`, { headers });
   return response.data;
 }
+
+// Adicionar ação a um dispositivo
+export async function addActionToDevice(deviceId, action) {
+  const headers = await getAuthHeaders();
+  const response = await axios.post(`${API_BASE_URL}/devices/${deviceId}/actions`, action, { headers });
+  return response.data;
+}
+
+// Remover ação de um dispositivo (por índice)
+export async function removeActionFromDevice(deviceId, index) {
+  const headers = await getAuthHeaders();
+  const response = await axios.delete(`${API_BASE_URL}/devices/${deviceId}/actions/${index}`, { headers });
+  return response.data;
+}

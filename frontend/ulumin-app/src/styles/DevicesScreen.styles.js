@@ -25,14 +25,9 @@ export default StyleSheet.create({
     padding: 20,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
   },
   deviceCard: {
     flex: 1,
@@ -41,22 +36,17 @@ export default StyleSheet.create({
     padding: 15,
     marginBottom: 20,
     marginHorizontal: 5,
-    minHeight: 200,
+    minHeight: 140,
     justifyContent: 'center',
     position: 'relative',
   },
+  deviceCardPressed: {
+  backgroundColor: '#e6d6e6', 
+},
+
   iconContainer: {
     alignItems: 'center',
     marginBottom: 8,
-  },
-  icon: {
-    alignSelf: 'center',
-  },
-  actionMenuButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    padding: 5,
   },
   deviceName: {
     fontSize: 16,
@@ -87,54 +77,39 @@ export default StyleSheet.create({
     marginTop: 5,
     marginBottom: 15,
   },
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-  cancelButton: {
-    marginRight: 15,
-  },
-  cancelButtonText: {
-    color: '#666',
-  },
-  confirmButtonText: {
-    color: '#6e3b6e',
-    fontWeight: 'bold',
-  },
-  iconOption: {
-    marginRight: 15,
-    padding: 5,
-    borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 50,
-    height: 50,
-  },
-  iconOptionSelected: {
-    backgroundColor: '#6e3b6e',
-  },
-  iconOptionUnselected: {
-    backgroundColor: '#eee',
-  },
-  iconOptionColorSelected: '#fff',
-  iconOptionColorUnselected: '#666',
-  existingDeviceItem: {
-    padding: 8,
-    borderRadius: 8,
-    marginBottom: 5,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  existingDeviceItemSelected: {
-    backgroundColor: '#6e3b6e',
-  },
-  existingDeviceItemUnselected: {
-    backgroundColor: '#eee',
-  },
-  existingDeviceTextSelected: {
-    color: '#fff',
-  },
-  existingDeviceTextUnselected: {
-    color: '#000',
-  },
+  deviceCard: {
+      flex: 1,
+      backgroundColor: '#f9f9f9',
+      borderRadius: 10,
+      padding: 15,
+      marginBottom: 20,
+      marginHorizontal: 5,
+      minHeight: 140,
+      justifyContent: 'center',
+      position: 'relative',
+    },
+    iconContainer: {
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    icon: {
+      alignSelf: 'center',
+    },
+    actionMenuButton: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      padding: 5,
+    },
+    deviceName: {
+      fontSize: 16,
+      fontWeight: '600',
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    deleteButton: {
+      alignSelf: 'center',
+      marginTop: 0,
+      padding: 5,
+    },
 });

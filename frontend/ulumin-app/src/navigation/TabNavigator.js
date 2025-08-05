@@ -10,6 +10,7 @@ import RoomsScreen from '../screens/RoomsScreen';
 import DevicesScreen from '../screens/DevicesScreen';
 import ScheduleScreen from '../screens/ScheduleScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import DeviceActionsScreen from '../screens/DeviceActionsScreen'; 
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -46,6 +47,13 @@ function RoomsStack() {
         options={({ route }) => ({
           // Usa o parâmetro roomName passado na navegação para o título do header
           headerTitle: route.params?.roomName || 'Dispositivos',
+        })}
+      />
+       <Stack.Screen
+        name="DeviceActions"
+        component={DeviceActionsScreen}
+        options={({ route }) => ({
+          headerTitle: route.params?.device?.name || 'Ações do dispositivo',
         })}
       />
     </Stack.Navigator>

@@ -22,7 +22,7 @@ import {
 import {
   getCategories,
   createCategory,
-  deleteCategory,
+  deleteCategory
 } from '../services/categoriesService';
 
 import styles from '../styles/DevicesScreen.styles';
@@ -49,7 +49,7 @@ export default function DevicesScreen({ route, navigation }) {
   const [newDeviceIcon, setNewDeviceIcon] = useState('devices');
 
   const [selectedExistingDevice, setSelectedExistingDevice] = useState(null);
-
+  
   useEffect(() => {
     fetchCategories();
     fetchDevicesInRoom();
@@ -176,51 +176,14 @@ export default function DevicesScreen({ route, navigation }) {
     }
   }
 
-async function handleDeleteCategory(category) {
-  Alert.alert(
-    'Confirmar exclusão',
-    `Deseja apagar a categoria "${category.name}"?`,
-    [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Apagar',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteCategory(category._id);
-            setCategories(prev => prev.filter(c => c._id !== category._id));
-
-            // Se a categoria deletada for a selecionada, limpar
-            if (selectedCategory?._id === category._id) {
-              setSelectedCategory(null);
-              setModalDeviceVisible(false);
-            }
-
-            Alert.alert('Sucesso', 'Categoria apagada com sucesso.');
-          } catch (err) {
-            console.error('Erro ao apagar categoria:', err);
-            Alert.alert('Erro', 'Não foi possível apagar a categoria.');
-          }
-        },
-      },
-    ]
-  );
-}
-
-
-function handleEditCategory(category) {
-  Alert.alert('Aviso', `Função de editar "${category.name}" ainda não implementada.`);
-}
-
-
   async function handleDeleteDevice(deviceId) {
     Alert.alert(
       'Confirmar exclusão',
-      'Tem certeza que deseja excluir este dispositivo?',
+      'Tem certeza que deseja deletar este dispositivo?',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Excluir',
+          text: 'Deletar',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -228,14 +191,43 @@ function handleEditCategory(category) {
               setDevices(prev => prev.filter(d => d._id !== deviceId));
               setCategoryDevices(prev => prev.filter(d => d._id !== deviceId));
             } catch (err) {
-              console.error('Erro ao excluir dispositivo:', err);
-              Alert.alert('Erro', 'Não foi possível excluir o dispositivo.');
+              console.error('Erro ao deletar dispositivo:', err);
+              Alert.alert('Erro', 'Não foi possível deletar o dispositivo.');
             }
           },
         },
       ]
     );
   }
+
+  async function handleDeleteCategory(categoryId) {
+  Alert.alert(
+    'Confirmar exclusão',
+    'Tem certeza que deseja deletar esta categoria?',
+    [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Deletar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteCategory(categoryId);
+            setCategories(prev => prev.filter(cat => cat._id !== categoryId));
+
+            // Se a categoria removida estiver selecionada, reset
+            if (selectedCategory?._id === categoryId) {
+              setSelectedCategory(null);
+              setModalDeviceVisible(false);
+            }
+          } catch (err) {
+            console.error('Erro ao deletar categoria:', err);
+            Alert.alert('Erro', 'Não foi possível deletar a categoria.');
+          }
+        },
+      },
+    ]
+  );
+}
 
   useEffect(() => {
     navigation.setOptions({
@@ -246,9 +238,9 @@ function handleEditCategory(category) {
             setModalCategoryVisible(true);
             setNewCategoryName('');
           }}
-          style={{ marginRight: 15, marginBottom: 5 }}
+          style={{ marginRight: 15 }}
         >
-          <Text style={{ fontSize: 50, color: 'black' }}>＋</Text>
+          <Text style={{ fontSize: 40, color: '#6e3b6e' }}>＋</Text>
         </TouchableOpacity>
       ),
     });
@@ -287,46 +279,30 @@ function handleEditCategory(category) {
           contentContainerStyle={styles.grid}
           columnWrapperStyle={{ justifyContent: 'space-between' }}
           renderItem={({ item }) => (
-            <View style={styles.deviceCard}>
-              {/* Ícone no topo, centralizado */}
-              <View style={styles.iconContainer}>
-                <Icon name={item.icon || 'devices'} size={40} color="#333" />
-              </View>
+    <TouchableOpacity
+      style={styles.deviceCard}
+      onLongPress={() => navigation.navigate('DeviceActions', { device: item })}
+      activeOpacity={0.8}
+    >
+      {/* Ícone no topo, centralizado */}
+      <View style={styles.iconContainer}>
+        <Icon name={item.icon || 'devices'} size={40} color="#333" />
+      </View>
+      {/* Nome do dispositivo abaixo do ícone */}
+      <Text style={styles.deviceName}>{item.name}</Text>
 
-              {/* Botão de ação (3 pontinhos) no canto superior direito */}
-              <TouchableOpacity
-                style={styles.actionMenuButton}
-                onPress={() => {
-                  Alert.alert(
-                    'Ações',
-                    `Escolha uma ação para "${item.name}"`,
-                    [
-                      { text: 'Cancelar', style: 'cancel' },
-                      { text: 'Ligar', onPress: () => {/* ação ligar */} },
-                      { text: 'Desligar', onPress: () => {/* ação desligar */} },
-                      { text: 'Temporizar', onPress: () => {/* ação temporizar */} },
-                    ],
-                    { cancelable: true }
-                  );
-                }}
-              >
-                <Icon name="dots-vertical" size={24} color="#666" />
-              </TouchableOpacity>
+      {/* Botão deletar abaixo do nome, centralizado */}
+      <TouchableOpacity
+        onPress={() => handleDeleteDevice(item._id)}
+        style={styles.deleteButton}
+      >
+        <Icon name="delete" size={24} color="#cc0000" />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  )}
+/>  
+)}
 
-              {/* Nome do dispositivo abaixo do ícone */}
-              <Text style={styles.deviceName}>{item.name}</Text>
-
-              {/* Botão deletar abaixo do nome, centralizado */}
-              <TouchableOpacity
-                onPress={() => handleDeleteDevice(item._id)}
-                style={styles.deleteButton}
-              >
-                <Icon name="delete" size={24} color="#cc0000" />
-              </TouchableOpacity>
-            </View>
-          )}
-        />
-      )}
 
       {/* Modal seleção / criação categoria */}
       {/* ... (restante do código do modal igual ao seu original) */}
@@ -337,31 +313,29 @@ function handleEditCategory(category) {
 
             <ScrollView style={{ maxHeight: 200, marginVertical: 10 }}>
               {categories.map(cat => (
- <TouchableOpacity
-  key={cat._id}
-  style={{
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
-  }}
-  onPress={() => onSelectCategory(cat)}
->
-  <Text style={{ fontSize: 16 }}>{cat.name}</Text>
-  <View style={{ flexDirection: 'row', gap: 15 }}>
-    <TouchableOpacity onPress={() => handleEditCategory(cat)}>
-      <Icon name="pencil" size={20} color="#007AFF" />
-    </TouchableOpacity>
-    <TouchableOpacity onPress={() => handleDeleteCategory(cat)}>
-      <Icon name="delete" size={20} color="#cc0000" />
-    </TouchableOpacity>
-  </View>
-</TouchableOpacity>
-
+        <View
+          key={cat._id}
+          style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}
+        >
+          <TouchableOpacity
+            style={{
+            flex: 1,
+            padding: 12,
+            backgroundColor: '#eee',
+            borderRadius: 8,
+            }}
+            onPress={() => onSelectCategory(cat)}
+            >
+            <Text style={{ fontSize: 16 }}>{cat.name}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => handleDeleteCategory(cat._id)}
+            style={{ marginLeft: 10, padding: 6 }}
+          >
+            <Icon name="delete" size={24} color="#cc0000" />
+          </TouchableOpacity>
+        </View>
 ))}
-
             </ScrollView>
 
             <Text style={{ marginTop: 10 }}>Ou adicione uma nova categoria:</Text>
@@ -461,8 +435,8 @@ function handleEditCategory(category) {
 
             <Text style={{ marginTop: 10 }}>
               {selectedExistingDevice
-                ? 'Está a duplicar este dispositivo.'
-                : 'Nome do novo dispositivo:'}
+                ? 'Você está duplicando este dispositivo.'
+                : 'Nome do dispositivo:'}
             </Text>
             {!selectedExistingDevice && (
               <>

@@ -18,11 +18,11 @@ import {
   deleteSchedule as deleteScheduleService,
 } from '../services/scheduleService';
 import {
-  getDevicesByCategory,
   getRooms,
 } from '../services/catalogdevicesService';
-import { getCategoriesByRoom } from '../services/categoriesService';
+import { getCategories } from '../services/categoriesService';
 import styles from '../styles/ScheduleScreen.styles';
+import { getDevicesByRoom } from '../services/devicesService';
 
 const daysOfWeek = [
   { key: 'mon', label: 'Seg' },
@@ -51,7 +51,6 @@ export default function ScheduleScreen() {
   const [action, setAction] = useState('on');
   const [time, setTime] = useState(new Date());
   const [repeatDays, setRepeatDays] = useState([]);
-  const [active, setActive] = useState(true);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   useEffect(() => {
@@ -79,7 +78,7 @@ export default function ScheduleScreen() {
 
   async function fetchCategories(roomId) {
     try {
-      const catList = await getCategoriesByRoom(roomId);
+      const catList = await getCategories(roomId);
       setCategories(catList);
       if (catList.length > 0) {
         setSelectedCategory(catList[0]._id);
@@ -94,27 +93,31 @@ export default function ScheduleScreen() {
     }
   }
 
-  useEffect(() => {
-    if (selectedCategory) {
-      fetchDevices(selectedCategory);
-    }
-  }, [selectedCategory]);
+useEffect(() => {
+  if (selectedRoom && selectedCategory) {
+    fetchDevices(selectedRoom, selectedCategory);
+  } else {
+    setDevices([]);
+    setDevice('');
+  }
+}, [selectedRoom, selectedCategory]);
 
-  async function fetchDevices(categoryId) {
-    try {
-      const devicesList = await getDevicesByCategory(categoryId);
-      setDevices(devicesList);
-      if (devicesList.length > 0) {
-        setDevice(devicesList[0]._id);
-      } else {
-        setDevice('');
-      }
-    } catch (e) {
-      console.error('Erro ao carregar dispositivos:', e);
-      setDevices([]);
+
+  async function fetchDevices(roomId, categoryId) {
+  try {
+    const devicesList = await getDevicesByRoom(roomId, categoryId);
+    setDevices(devicesList);
+    if (devicesList.length > 0) {
+      setDevice(devicesList[0]._id);
+    } else {
       setDevice('');
     }
+  } catch (e) {
+    console.error('Erro ao carregar dispositivos:', e);
+    setDevices([]);
+    setDevice('');
   }
+}
 
   async function fetchSchedules() {
     setLoading(true);
@@ -143,17 +146,17 @@ export default function ScheduleScreen() {
     date.setHours(Number(hours), Number(minutes));
     setTime(date);
     setRepeatDays(schedule.repeat || []);
-    setActive(schedule.active);
     setModalVisible(true);
   }
 
   function openModalToCreate() {
     setEditingSchedule(null);
+    setSelectedRoom(rooms.length > 0 ? rooms[0]._id : null);
     setDevice(devices.length > 0 ? devices[0]._id : '');
+    setSelectedCategory(null);
     setAction('on');
     setTime(new Date());
     setRepeatDays([]);
-    setActive(true);
     setModalVisible(true);
   }
 
@@ -169,7 +172,6 @@ export default function ScheduleScreen() {
       action,
       time: formattedTime,
       repeat: repeatDays,
-      active,
     };
 
     try {
@@ -181,8 +183,8 @@ export default function ScheduleScreen() {
       setModalVisible(false);
       fetchSchedules();
     } catch (e) {
-      console.error('Erro ao salvar schedule:', e);
-      alert('Erro ao salvar temporização.');
+      console.error('Erro ao guardar schedule:', e);
+      alert('Erro ao guardar agendamento.');
     }
   }
 
@@ -192,27 +194,13 @@ export default function ScheduleScreen() {
       fetchSchedules();
     } catch (e) {
       console.error('Erro ao eliminar schedule:', e);
-      alert('Erro ao eliminar temporização.');
+      alert('Erro ao eliminar agendamento.');
     }
   }
 
   return (
     <View style={styles.container}>
-      <Text style={{ fontWeight: 'bold', marginBottom: 10 }}>Selecione a Divisão:</Text>
-      <Picker selectedValue={selectedRoom} onValueChange={setSelectedRoom}>
-        {rooms.map((r) => (
-          <Picker.Item key={r._id} label={r.name} value={r._id} />
-        ))}
-      </Picker>
-
-      <Text style={{ fontWeight: 'bold', marginTop: 10 }}>Categoria:</Text>
-      <Picker selectedValue={selectedCategory} onValueChange={setSelectedCategory}>
-        {categories.map((c) => (
-          <Picker.Item key={c._id} label={c.name} value={c._id} />
-        ))}
-      </Picker>
-
-      <Button title="Adicionar Temporização" onPress={openModalToCreate} />
+      <Button title="Adicionar Agendamento" onPress={openModalToCreate} />
 
       {loading ? (
         <Text>Carregando...</Text>
@@ -240,8 +228,13 @@ export default function ScheduleScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {editingSchedule ? 'Editar Temporização' : 'Nova Temporização'}
+              {editingSchedule ? 'Editar Agendamento' : 'Novo Agendamento'}
             </Text>
+
+            <Text>Divisão:</Text>
+            <Picker selectedValue={selectedRoom} onValueChange={setSelectedRoom}>
+              {rooms.map(r => <Picker.Item key={r._id} label={r.name} value={r._id} />)}
+            </Picker>
 
             <Text>Dispositivo:</Text>
             <Picker selectedValue={device} onValueChange={setDevice}>
@@ -250,7 +243,7 @@ export default function ScheduleScreen() {
               ))}
             </Picker>
 
-            <Text>Ação:</Text>
+            <Text style={{ marginBottom: 5 }}>Ação:</Text>
             <View style={{ flexDirection: 'row', marginBottom: 10 }}>
               <TouchableOpacity
                 style={[styles.actionBtn, action === 'on' && styles.actionBtnSelected]}
@@ -306,11 +299,6 @@ export default function ScheduleScreen() {
                   </Text>
                 </TouchableOpacity>
               ))}
-            </View>
-
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-              <Text>Ativo:</Text>
-              <Switch value={active} onValueChange={setActive} />
             </View>
 
             <View style={styles.modalButtons}>

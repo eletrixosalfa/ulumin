@@ -47,6 +47,7 @@ export async function updateSchedule(scheduleId, scheduleData) {
 }
 
 export async function deleteSchedule(scheduleId) {
+  console.log('Deleting schedule with ID:', scheduleId);
   try {
     const headers = await getAuthHeaders();
     await axios.delete(`${API_BASE_URL}/schedules/${scheduleId}`, { headers });

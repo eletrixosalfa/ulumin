@@ -9,6 +9,8 @@ exports.createOrUpdateMqttConfig = async (req, res) => {
 
     if (existing) {
       existing.host = host;
+      existing.user = user;
+      existing.pass = pass;
       existing.port = port;
       existing.ssl = ssl;
       await existing.save();

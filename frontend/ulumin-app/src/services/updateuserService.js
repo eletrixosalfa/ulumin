@@ -1,34 +1,37 @@
-import api from '../api/api';
-import { getToken } from '../utils/token'; // se já tiveres esta função
+import api from '../api/axios';
 
-export const getProfile = async () => {
-  const token = await getToken();
-  const res = await api.get('/user/profile', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
-};
+// Função para obter dados do perfil do usuário
+export async function getProfile() {
+  try {
+    const response = await api.get('/updateuser/profile'); // ajustar endpoint conforme backend
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar perfil:', error);
+    throw error;
+  }
+}
 
-export const updateProfile = async (name, email) => {
-  const token = await getToken();
-  const res = await api.put(
-    '/user/profile',
-    { name, email },
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-  return res.data;
-};
+// Função para atualizar nome e email do usuário
+export async function updateProfile(profileData) {
+  try {
+    const response = await api.put('/updateuser/profile', profileData);
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao atualizar perfil:', error);
+    throw error;
+  }
+}
 
-export const changePassword = async (currentPassword, newPassword) => {
-  const token = await getToken();
-  const res = await api.put(
-    '/user/password',
-    { currentPassword, newPassword },
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-  return res.data;
-};
+// Função para alterar senha do usuário
+export async function changePassword(currentPassword, newPassword) {
+  try {
+    const response = await api.put('/updateuser/password', {
+      currentPassword,
+      newPassword,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao alterar senha:', error);
+    throw error;
+  }
+}

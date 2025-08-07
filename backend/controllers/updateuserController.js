@@ -3,7 +3,7 @@ const updateuser = require('../models/UpdateUser'); // model chamado updateuser
 
 exports.getProfile = async (req, res) => {
   try {
-    const user = await updateuser.findById(req.user.id).select('-password');
+    const user = await updateuser.findById(req.user.userId).select('-password');
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: 'Erro ao buscar perfil do usuário' });
@@ -14,7 +14,7 @@ exports.updateProfile = async (req, res) => {
   const { name, email } = req.body;
   try {
     const user = await updateuser.findByIdAndUpdate(
-      req.user.id,
+      req.user.userId,
       { name, email },
       { new: true }
     ).select('-password');
@@ -28,7 +28,7 @@ exports.changePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
   try {
-    const user = await updateuser.findById(req.user.id);
+    const user = await updateuser.findById(req.user.userId);
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Senha atual incorreta' });

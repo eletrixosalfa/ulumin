@@ -1,5 +1,5 @@
 import React, { useRef, useContext } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -71,8 +71,11 @@ function ScheduleStack() {
 function SettingsStack() {
   return (
     <Stack.Navigator>
-      <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{ headerTitle: 'Configurações' }} />
-      {/* Outras telas de configurações aqui */}
+      <Stack.Screen
+        name="SettingsScreen"
+        component={SettingsScreen}
+        options={{ headerTitle: 'Configurações' }}
+      />
     </Stack.Navigator>
   );
 }
@@ -82,13 +85,15 @@ export default function TabNavigator() {
   const { logout } = useContext(AuthContext);
   const navigation = useNavigation();
 
+  // Abre o bottom sheet de configurações
   const openSettingsSheet = () => {
     settingsSheetRef.current?.open();
   };
 
+  // Fecha o bottom sheet e navega para a aba Settings (que já abre a SettingsScreen)
   const goToSettingsScreen = () => {
     settingsSheetRef.current?.close();
-    navigation.navigate('Settings', { screen: 'SettingsScreen' });
+    navigation.navigate('Settings');  // Só navega para a aba 'Settings'
   };
 
   return (
@@ -144,21 +149,20 @@ export default function TabNavigator() {
                 accessibilityRole="button"
                 accessibilityState={accessibilityState}
                 style={({ pressed }) => ({
-                flex: 1,
-                opacity: pressed ? 0.7 : 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-        })}
-      >
-        {children}
-      </Pressable>
-    ),
-  }}
-/>
-
+                  flex: 1,
+                  opacity: pressed ? 0.7 : 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                })}
+              >
+                {children}
+              </Pressable>
+            ),
+          }}
+        />
       </Tab.Navigator>
 
-      <SettingsBottomSheet ref={settingsSheetRef} logout={logout} onSettingsPress={goToSettingsScreen} />
+      <SettingsBottomSheet logout={logout} ref={settingsSheetRef} onSettingsPress={goToSettingsScreen} />
     </>
   );
 }

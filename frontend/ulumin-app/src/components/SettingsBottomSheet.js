@@ -10,11 +10,14 @@ const SettingsBottomSheet = forwardRef(({ logout, onSettingsPress }, ref) => {
   if (ref && ref.current) {
     ref.current.close();
   }
+
+  setTimeout(() => {
   if (typeof onSettingsPress === 'function') {
     onSettingsPress();
   } else {
     console.warn('onSettingsPress não está definido');
   }
+  }, 300);
 };
 
   // Confirmação para logout

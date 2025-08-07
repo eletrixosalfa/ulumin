@@ -6,65 +6,43 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#fff',
   },
-
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-
   label: {
+    fontWeight: 'bold',
     fontSize: 16,
-    marginBottom: 5,
-    marginTop: 15,
   },
-
   input: {
-    height: 45,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 8,
-    paddingHorizontal: 10,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    marginBottom: 10,
+    marginTop: 2,
   },
-
-  switchRow: {
+  switchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 20,
-    marginBottom: 20,
+    marginVertical: 10,
   },
-
+  status: {
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '600',
+    marginVertical: 10,
+  },
   button: {
-    backgroundColor: '#007BFF',
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: '#007bff',
+    padding: 15,
+    borderRadius: 6,
     alignItems: 'center',
-    marginTop: 15,
+    marginVertical: 8,
+    Height: 50,
   },
-
-  resetButton: {
-    backgroundColor: '#f0f0f0',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 15,
-  },
-
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-
-  status: {
-    textAlign: 'center',
-    marginTop: 15,
-    fontSize: 16,
-    fontWeight: '500',
   },
 });
 

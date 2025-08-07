@@ -1,7 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Switch, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Switch,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  ScrollView,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import styles from '../styles/ServerSettingsScreen.styles';
-import * as mqttService from '../services/mqttService'; // você vai criar isso
+import * as mqttService from '../services/mqttService';
 
 export default function ServerSettingsScreen() {
   const [config, setConfig] = useState({
@@ -16,11 +28,10 @@ export default function ServerSettingsScreen() {
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
 
-  // 1. Buscar configuração atual
   const fetchConfig = async () => {
     setLoading(true);
     try {
-      const data = await mqttService.getConfig();
+      const data = await mqttService.getMqttConfig();
       setConfig({
         host: data.host || '',
         port: data.port ? String(data.port) : '',
@@ -28,10 +39,19 @@ export default function ServerSettingsScreen() {
         pass: data.pass || '',
         ssl: data.ssl || false,
       });
-    } catch (err) {
+    } catch {
       Alert.alert('Erro', 'Não foi possível carregar a configuração MQTT.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStatus = async () => {
+    try {
+      const stat = await mqttService.getMqttStatus();
+      setStatus(stat.status === 'connected' ? '✅ Conectado' : '❌ Desconectado');
+    } catch {
+      setStatus('❌ Desconectado');
     }
   };
 
@@ -40,21 +60,10 @@ export default function ServerSettingsScreen() {
     fetchStatus();
   }, []);
 
-  // 5. Buscar status atual
-  const fetchStatus = async () => {
-    try {
-      const stat = await mqttService.getStatus();
-      setStatus(stat.connected ? '✅ Conectado' : '❌ Desconectado');
-    } catch {
-      setStatus('❌ Desconectado');
-    }
-  };
-
-  // 2. Salvar configuração
   const saveConfig = async () => {
     setSaving(true);
     try {
-      await mqttService.updateConfig({
+      await mqttService.createOrUpdateMqttConfig({
         ...config,
         port: Number(config.port),
       });
@@ -67,11 +76,10 @@ export default function ServerSettingsScreen() {
     }
   };
 
-  // 3. Testar conexão
   const testConnection = async () => {
     setTesting(true);
     try {
-      const result = await mqttService.testConnection(config);
+      const result = await mqttService.testMqttConnection(config);
       Alert.alert('Teste de Conexão', result.success ? 'Conectado com sucesso!' : 'Falha na conexão');
       fetchStatus();
     } catch {
@@ -81,10 +89,9 @@ export default function ServerSettingsScreen() {
     }
   };
 
-  // 4. Resetar configuração
   const resetConfig = async () => {
     try {
-      await mqttService.resetConfig();
+      await mqttService.resetMqttConfig();
       Alert.alert('Reset', 'Configuração resetada para padrão.');
       fetchConfig();
       fetchStatus();
@@ -96,62 +103,72 @@ export default function ServerSettingsScreen() {
   if (loading) return <ActivityIndicator style={{ marginTop: 50 }} size="large" />;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Host:</Text>
-      <TextInput
-        style={styles.input}
-        value={config.host}
-        onChangeText={(text) => setConfig({ ...config, host: text })}
-        placeholder="Host MQTT"
-      />
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView contentContainerStyle={{ padding: 20 }}>
+          <Text style={styles.label}>Host:</Text>
+          <TextInput
+            style={styles.input}
+            value={config.host}
+            onChangeText={(text) => setConfig({ ...config, host: text })}
+            placeholder="Host MQTT"
+          />
 
-      <Text style={styles.label}>Porta:</Text>
-      <TextInput
-        style={styles.input}
-        value={config.port}
-        onChangeText={(text) => setConfig({ ...config, port: text.replace(/[^0-9]/g, '') })}
-        keyboardType="numeric"
-        placeholder="Porta"
-      />
+          <Text style={styles.label}>Porta:</Text>
+          <TextInput
+            style={styles.input}
+            value={config.port}
+            onChangeText={(text) => setConfig({ ...config, port: text.replace(/[^0-9]/g, '') })}
+            keyboardType="numeric"
+            placeholder="Porta"
+          />
 
-      <Text style={styles.label}>Usuário:</Text>
-      <TextInput
-        style={styles.input}
-        value={config.user}
-        onChangeText={(text) => setConfig({ ...config, user: text })}
-        placeholder="Usuário MQTT"
-      />
+          <Text style={styles.label}>Usuário:</Text>
+          <TextInput
+            style={styles.input}
+            value={config.user}
+            onChangeText={(text) => setConfig({ ...config, user: text })}
+            placeholder="Usuário MQTT"
+          />
 
-      <Text style={styles.label}>Senha:</Text>
-      <TextInput
-        style={styles.input}
-        value={config.pass}
-        onChangeText={(text) => setConfig({ ...config, pass: text })}
-        placeholder="Senha MQTT"
-        secureTextEntry
-      />
+          <Text style={styles.label}>Senha:</Text>
+          <TextInput
+            style={styles.input}
+            value={config.pass}
+            onChangeText={(text) => setConfig({ ...config, pass: text })}
+            placeholder="Senha MQTT"
+            secureTextEntry
+          />
 
-      <View style={styles.switchContainer}>
-        <Text style={styles.label}>SSL:</Text>
-        <Switch
-          value={config.ssl}
-          onValueChange={(value) => setConfig({ ...config, ssl: value })}
-        />
-      </View>
+          <View style={styles.switchContainer}>
+            <Text style={styles.label}>SSL:</Text>
+            <Switch
+              value={config.ssl}
+              onValueChange={(value) => setConfig({ ...config, ssl: value })}
+            />
+          </View>
 
-      <Text style={styles.status}>Status: {status || 'Carregando...'}</Text>
+          <Text style={styles.status}>Status: {status || 'A carregar...'}</Text>
 
-      <TouchableOpacity style={styles.button} onPress={saveConfig} disabled={saving}>
-        <Text style={styles.buttonText}>{saving ? 'Salvando...' : 'Salvar Configuração'}</Text>
-      </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={saveConfig} disabled={saving}>
+            <Text style={styles.buttonText}>{saving ? 'A guardar...' : 'Guardar Configuração'}</Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={testConnection} disabled={testing}>
-        <Text style={styles.buttonText}>{testing ? 'Testando...' : 'Testar Conexão'}</Text>
-      </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={testConnection} disabled={testing}>
+            <Text style={styles.buttonText}>{testing ? 'A testar...' : 'Testar Conexão'}</Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.button, { backgroundColor: '#d9534f' }]} onPress={resetConfig}>
-        <Text style={styles.buttonText}>Resetar Configuração</Text>
-      </TouchableOpacity>
-    </View>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: '#d9534f' }]}
+            onPress={resetConfig}
+          >
+            <Text style={styles.buttonText}>Resetar Configuração</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

@@ -52,27 +52,47 @@ exports.deleteMqttConfig = async (req, res) => {
   }
 };
 
-// 1 - Testar conexão MQTT
+// 1 - Testar conexão MQTT (corrigido)
 exports.testMqttConnection = async (req, res) => {
   const { host, user, pass, port, ssl } = req.body;
   try {
     const protocol = ssl ? 'mqtts' : 'mqtt';
     const url = `${protocol}://${host}:${port}`;
-    const options = { username: user, password: pass, connectTimeout: 5000 };
+    const options = {
+      username: user || undefined,
+      password: pass || undefined,
+      connectTimeout: 4000,
+    };
 
     const client = mqtt.connect(url, options);
+    let responded = false;
 
     client.on('connect', () => {
-      client.end();
-      return res.json({ success: true, message: 'Conexão MQTT bem sucedida' });
+      if (!responded) {
+        responded = true;
+        client.end();
+        return res.json({ success: true, message: 'Conexão MQTT bem sucedida' });
+      }
     });
 
     client.on('error', (err) => {
-      client.end();
-      return res.status(400).json({ success: false, message: 'Falha na conexão MQTT', error: err.message });
+      if (!responded) {
+        responded = true;
+        client.end();
+        return res.status(400).json({ success: false, message: 'Falha na conexão MQTT', error: err.message });
+      }
     });
+
+    setTimeout(() => {
+      if (!responded) {
+        responded = true;
+        client.end();
+        return res.status(408).json({ success: false, message: 'Timeout na tentativa de conexão MQTT' });
+      }
+    }, 5000);
+
   } catch (error) {
-    return res.status(500).json({ message: 'Erro ao testar conexão MQTT', error: error.message });
+    return res.status(500).json({ success: false, message: 'Erro ao testar conexão MQTT', error: error.message });
   }
 };
 
@@ -118,7 +138,6 @@ exports.getMqttStatus = async (req, res) => {
     const options = { username: config.user, password: config.pass, connectTimeout: 3000 };
 
     const client = mqtt.connect(url, options);
-
     let responded = false;
 
     client.on('connect', () => {
@@ -137,7 +156,6 @@ exports.getMqttStatus = async (req, res) => {
       }
     });
 
-    // Timeout para caso não responda
     setTimeout(() => {
       if (!responded) {
         responded = true;

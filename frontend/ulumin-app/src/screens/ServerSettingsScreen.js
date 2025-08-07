@@ -50,7 +50,8 @@ export default function ServerSettingsScreen() {
     try {
       const stat = await mqttService.getMqttStatus();
       setStatus(stat.status === 'connected' ? '✅ Conectado' : '❌ Desconectado');
-    } catch {
+    } catch (error) {
+      console.error('Erro ao obter status MQTT:', error);
       setStatus('❌ Desconectado');
     }
   };
@@ -67,7 +68,7 @@ export default function ServerSettingsScreen() {
         ...config,
         port: Number(config.port),
       });
-      Alert.alert('Sucesso', 'Configuração salva!');
+      Alert.alert('Sucesso', 'Configuração guardada!');
       fetchStatus();
     } catch {
       Alert.alert('Erro', 'Falha ao salvar configuração.');
@@ -82,12 +83,11 @@ export default function ServerSettingsScreen() {
       const result = await mqttService.testMqttConnection(config);
       Alert.alert('Teste de Conexão', result.success ? 'Conectado com sucesso!' : 'Falha na conexão');
       fetchStatus();
-    } catch {
-      Alert.alert('Erro', 'Erro ao testar conexão.');
-    } finally {
-      setTesting(false);
-    }
-  };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Erro ao testar conexão.';
+      Alert.alert('Erro', message);
+    } 
+  }
 
   const resetConfig = async () => {
     try {

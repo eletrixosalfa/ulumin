@@ -1,71 +1,151 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  Switch,
+  ActivityIndicator,
+} from 'react-native';
 import styles from '../styles/ServerSettingsScreen.styles';
+import api from '../api/api';
 
 export default function ServerSettingsScreen() {
-  const [serverUrl, setServerUrl] = useState('');
-  const [port, setPort] = useState('');
+  const [config, setConfig] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [testing, setTesting] = useState(false);
+  const [status, setStatus] = useState('Desconhecido');
 
+  // Buscar configuração atual ao iniciar
   useEffect(() => {
-    loadSettings();
+    fetchConfig();
+    fetchStatus();
   }, []);
 
-  const loadSettings = async () => {
-    const savedUrl = await AsyncStorage.getItem('serverUrl');
-    const savedPort = await AsyncStorage.getItem('serverPort');
-    if (savedUrl) setServerUrl(savedUrl);
-    if (savedPort) setPort(savedPort);
-  };
-
-  const saveSettings = async () => {
+  const fetchConfig = async () => {
     try {
-      await AsyncStorage.setItem('serverUrl', serverUrl);
-      await AsyncStorage.setItem('serverPort', port);
-      Alert.alert('Sucesso', 'Configurações salvas com sucesso!');
+      const response = await api.get('/mqttconfig');
+      setConfig(response.data);
     } catch (error) {
-      Alert.alert('Erro', 'Falha ao salvar configurações');
+      Alert.alert('Erro', 'Não foi possível carregar a configuração MQTT.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const testConnection = async () => {
+  const fetchStatus = async () => {
     try {
-      const response = await fetch(`${serverUrl}:${port}/`);
-      if (response.ok) {
-        Alert.alert('Conexão bem-sucedida!');
+      const response = await api.get('/mqttconfig/status');
+      setStatus(response.data.connected ? '✅ Conectado' : '❌ Desconectado');
+    } catch {
+      setStatus('❌ Desconhecido');
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      await api.put(`/mqttconfig/${config._id}`, config);
+      Alert.alert('Sucesso', 'Configuração atualizada.');
+    } catch {
+      Alert.alert('Erro', 'Não foi possível salvar a configuração.');
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setTesting(true);
+    try {
+      const response = await api.post('/mqttconfig/test', config);
+      if (response.data.success) {
+        Alert.alert('✅ Conexão bem-sucedida');
       } else {
-        Alert.alert('Erro', 'Não foi possível conectar');
+        Alert.alert('❌ Falha na conexão');
       }
-    } catch (error) {
-      Alert.alert('Erro', 'Conexão falhou: ' + error.message);
+    } catch {
+      Alert.alert('Erro', 'Erro ao testar conexão.');
+    } finally {
+      setTesting(false);
     }
   };
+
+  const handleReset = async () => {
+    try {
+      const response = await api.post('/mqttconfig/reset');
+      setConfig(response.data);
+      Alert.alert('Configuração resetada para padrão.');
+    } catch {
+      Alert.alert('Erro', 'Não foi possível resetar a configuração.');
+    }
+  };
+
+  const handleChange = (field, value) => {
+    setConfig({ ...config, [field]: value });
+  };
+
+  if (loading || !config) {
+    return <ActivityIndicator size="large" style={{ marginTop: 30 }} />;
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>URL do Servidor</Text>
+      <Text style={styles.title}>Configuração do Servidor MQTT</Text>
+
+      <Text style={styles.label}>Host</Text>
       <TextInput
         style={styles.input}
-        value={serverUrl}
-        onChangeText={setServerUrl}
-        placeholder="Ex: https://ulumin-backend.onrender.com"
+        value={config.host}
+        onChangeText={text => handleChange('host', text)}
       />
 
       <Text style={styles.label}>Porta</Text>
       <TextInput
         style={styles.input}
-        value={port}
-        onChangeText={setPort}
-        placeholder="Ex: 443"
+        value={String(config.port)}
         keyboardType="numeric"
+        onChangeText={text => handleChange('port', parseInt(text))}
       />
 
-      <TouchableOpacity style={styles.button} onPress={saveSettings}>
+      <Text style={styles.label}>Usuário</Text>
+      <TextInput
+        style={styles.input}
+        value={config.user}
+        onChangeText={text => handleChange('user', text)}
+      />
+
+      <Text style={styles.label}>Senha</Text>
+      <TextInput
+        style={styles.input}
+        value={config.pass}
+        onChangeText={text => handleChange('pass', text)}
+        secureTextEntry
+      />
+
+      <View style={styles.switchRow}>
+        <Text style={styles.label}>Usar SSL</Text>
+        <Switch
+          value={config.ssl}
+          onValueChange={value => handleChange('ssl', value)}
+        />
+      </View>
+
+      <Text style={styles.status}>Status: {status}</Text>
+
+      <TouchableOpacity style={styles.button} onPress={handleSave}>
         <Text style={styles.buttonText}>Salvar</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={testConnection}>
-        <Text style={styles.buttonText}>Testar Conexão</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleTestConnection}
+        disabled={testing}
+      >
+        <Text style={styles.buttonText}>
+          {testing ? 'A testar...' : 'Testar Conexão'}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+        <Text style={[styles.buttonText, { color: 'red' }]}>Resetar</Text>
       </TouchableOpacity>
     </View>
   );

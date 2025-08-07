@@ -39,6 +39,7 @@ exports.changePassword = async (req, res) => {
     await user.save();
     res.json({ message: 'Senha alterada com sucesso' });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Erro ao alterar senha' });
   }
 };

@@ -15,10 +15,13 @@ async function connectMqtt() {
     const protocol = config.ssl ? 'mqtts' : 'mqtt';
     const url = `${protocol}://${config.host}:${config.port}`;
 
-    const options = {
-      username: config.user,
-      password: config.pass,
-    };
+ const options = {};
+
+// Só adiciona autenticação se houver username e password
+if (config.user && config.pass) {
+  options.username = config.user;
+  options.password = config.pass;
+}
 
     client = mqtt.connect(url, options);
 

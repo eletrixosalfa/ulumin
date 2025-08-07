@@ -5,7 +5,6 @@ import styles from '../styles/SettingsScreen.styles';
 export default function SettingsScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Configurações</Text>
 
       <TouchableOpacity
         style={styles.button}

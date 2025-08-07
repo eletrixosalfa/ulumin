@@ -5,7 +5,7 @@ export default StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#fff',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   title: {
     fontSize: 24,
@@ -19,10 +19,13 @@ export default StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 8,
     marginBottom: 20,
+    height: 54,
+    justifyContent: 'center',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     textAlign: 'center',
+    fontWeight: 'bold',
   },
 });

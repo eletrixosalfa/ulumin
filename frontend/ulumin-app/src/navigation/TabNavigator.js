@@ -13,6 +13,8 @@ import DeviceActionsScreen from '../screens/DeviceActionsScreen';
 import SettingsBottomSheet from '../components/SettingsBottomSheet';
 import { AuthContext } from '../context/AuthContext';
 import SettingsScreen from '../screens/SettingsScreen';
+import UserSettingsScreen from '../screens/UserSettingsScreen';
+import ServerSettingsScreen from '../screens/ServerSettingsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -78,15 +80,32 @@ function ScheduleStack() {
 
 function SettingsStack() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerTitleAlign: 'center',
+        headerStyle: { backgroundColor: '#000' },
+        headerTintColor: '#fff',
+      }}
+    >
       <Stack.Screen
         name="SettingsScreen"
         component={SettingsScreen}
         options={{ headerTitle: 'Configurações' }}
       />
+      <Stack.Screen
+        name="UserSettings"
+        component={UserSettingsScreen}
+        options={{ headerTitle: 'Configurações de Usuário' }}
+      />
+      <Stack.Screen
+        name="ServerSettings"
+        component={ServerSettingsScreen}
+        options={{ headerTitle: 'Configurações de Servidor' }}
+      />
     </Stack.Navigator>
   );
 }
+
 
 export default function TabNavigator() {
   const settingsSheetRef = useRef(null);

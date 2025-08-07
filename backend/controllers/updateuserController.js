@@ -1,26 +1,44 @@
-const User = require('../models/UpdateUser');
 const bcrypt = require('bcrypt');
+const User = require('../models/User');
 
-exports.updateUser = async (req, res) => {
+exports.getProfile = async (req, res) => {
   try {
-    const userId = req.user.userId; // do authMiddleware
-    const { name, email, password } = req.body;
+    const user = await User.findById(req.user.id).select('-password');
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao buscar perfil do usuário' });
+  }
+};
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: 'Utilizador não encontrado.' });
+exports.updateProfile = async (req, res) => {
+  const { name, email } = req.body;
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { name, email },
+      { new: true }
+    ).select('-password');
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao atualizar perfil' });
+  }
+};
 
-    if (name) user.name = name;
-    if (email) user.email = email;
+exports.changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
 
-    if (password) {
-      const hashed = await bcrypt.hash(password, 10);
-      user.password = hashed;
-    }
+  try {
+    const user = await User.findById(req.user.id);
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) return res.status(400).json({ message: 'Senha atual incorreta' });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
 
     await user.save();
-
-    res.status(200).json({ message: 'Dados atualizados com sucesso.', user: { id: user._id, name: user.name, email: user.email } });
+    res.json({ message: 'Senha alterada com sucesso' });
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao atualizar dados.', error: err.message });
+    res.status(500).json({ message: 'Erro ao alterar senha' });
   }
 };

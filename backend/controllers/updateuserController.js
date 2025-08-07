@@ -29,8 +29,18 @@ exports.changePassword = async (req, res) => {
 
   try {
     const user = await updateuser.findById(req.user.userId);
+    console.log("Usuário encontrado:", user);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    console.log("Senha atual digitada:", currentPassword);
+    console.log("Senha salva no banco (hash):", user.password);
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
+    console.log("Resultado da comparação de senha:", isMatch);
+
     if (!isMatch) return res.status(400).json({ message: 'Senha atual incorreta' });
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -39,7 +49,7 @@ exports.changePassword = async (req, res) => {
     await user.save();
     res.json({ message: 'Senha alterada com sucesso' });
   } catch (err) {
-    console.error(err);
+    console.error("Erro no changePassword:", err)
     res.status(500).json({ message: 'Erro ao alterar senha' });
   }
 };

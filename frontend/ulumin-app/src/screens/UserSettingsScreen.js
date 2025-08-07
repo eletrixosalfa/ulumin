@@ -1,38 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import styles from '../styles/UserSettingsScreen.styles';
 import * as updateuserService from '../services/updateuserService';
 
 export default function UserSettingsScreen() {
-  const [email, setEmail] = useState('usuario@exemplo.com'); // Fictício por agora
+  const [email, setEmail] = useState('');
   const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+    useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const user = await updateuserService.getProfile();
+        setEmail(user.email);
+      } catch (error) {
+        Alert.alert('Erro', 'Não foi possível carregar o perfil');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProfile();
+  }, []);
+
+  if (loading) {
+    return <Text>A Carregar...</Text>;
+  }
+
   const handleToggleEdit = () => {
     setEditing(!editing);
   };
 
-  const handleChangePassword = async () => {
-    if (newPassword !== confirmPassword) {
-      Alert.alert('Erro', 'As senhas não coincidem');
-      return;
-    }
+ const handleChangePassword = async () => {
+  if (newPassword !== confirmPassword) {
+    Alert.alert('Erro', 'As senhas não coincidem');
+    return;
+  }
 
-    try {
-      await updateuserService.changePassword(currentPassword, newPassword);
-      Alert.alert('Senha alterada com sucesso');
-      setEditing(false);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (error) {
-      console.error(error);
+  try {
+    await updateuserService.changePassword(currentPassword, newPassword);
+    Alert.alert('Senha alterada com sucesso');
+    setEditing(false);
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+  } catch (error) {
+    if (error.response && error.response.status === 400) {
+      Alert.alert('Erro', 'Senha atual incorreta');
+    } else {
       Alert.alert('Erro', 'Falha ao alterar senha');
     }
-  };
+  }
+};
 
   return (
     <View style={styles.container}>

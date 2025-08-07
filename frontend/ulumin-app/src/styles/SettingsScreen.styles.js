@@ -18,7 +18,8 @@ export default StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderRadius: 8,
-    marginBottom: 20,
+    marginBottom: 1,
+    marginTop: 1,
     height: 54,
     justifyContent: 'center',
   },
@@ -28,4 +29,11 @@ export default StyleSheet.create({
     textAlign: 'center',
     fontWeight: 'bold',
   },
+  separator: {
+  height: 1,
+  backgroundColor: '#ccc', 
+  marginVertical: 10,
+  marginBottom: 10, 
+  marginTop: 10,      
+  }
 });

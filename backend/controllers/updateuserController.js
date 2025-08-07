@@ -1,9 +1,9 @@
 const bcrypt = require('bcrypt');
-const User = require('../models/User');
+const updateuser = require('../models/UpdateUser'); // model chamado updateuser
 
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await updateuser.findById(req.user.id).select('-password');
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: 'Erro ao buscar perfil do usuário' });
@@ -13,7 +13,7 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   const { name, email } = req.body;
   try {
-    const user = await User.findByIdAndUpdate(
+    const user = await updateuser.findByIdAndUpdate(
       req.user.id,
       { name, email },
       { new: true }
@@ -28,7 +28,7 @@ exports.changePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
   try {
-    const user = await User.findById(req.user.id);
+    const user = await updateuser.findById(req.user.id);
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Senha atual incorreta' });

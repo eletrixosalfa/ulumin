@@ -20,7 +20,11 @@ const Stack = createStackNavigator();
 function HomeStack() {
   return (
     <Stack.Navigator>
-      <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
+      <Stack.Screen
+        name="HomeScreen"
+        component={HomeScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }
@@ -34,7 +38,11 @@ function RoomsStack() {
         headerTintColor: '#fff',
       }}
     >
-      <Stack.Screen name="RoomsScreen" component={RoomsScreen} options={{ headerTitle: 'Divisões' }} />
+      <Stack.Screen
+        name="RoomsScreen"
+        component={RoomsScreen}
+        options={{ headerTitle: 'Divisões' }}
+      />
       <Stack.Screen
         name="DevicesScreen"
         component={DevicesScreen}
@@ -85,15 +93,18 @@ export default function TabNavigator() {
   const { logout } = useContext(AuthContext);
   const navigation = useNavigation();
 
-  // Abre o bottom sheet de configurações
+  // Abre o BottomSheet
   const openSettingsSheet = () => {
     settingsSheetRef.current?.open();
   };
 
-  // Fecha o bottom sheet e navega para a aba Settings (que já abre a SettingsScreen)
-  const goToSettingsScreen = () => {
+  // Fecha o BottomSheet e navega para a tela Settings
+  const handleSettingsPress = () => {
     settingsSheetRef.current?.close();
-    navigation.navigate('Settings');  // Só navega para a aba 'Settings'
+    navigation.navigate('App', { 
+      screen: 'Settings',
+      params: { screen: 'SettingsScreen' }
+    });
   };
 
   return (
@@ -137,32 +148,41 @@ export default function TabNavigator() {
         <Tab.Screen name="Home" component={HomeStack} options={{ tabBarLabel: 'Home' }} />
         <Tab.Screen name="Rooms" component={RoomsStack} options={{ tabBarLabel: 'Divisões' }} />
         <Tab.Screen name="Schedule" component={ScheduleStack} options={{ tabBarLabel: 'Temporizações' }} />
+        
         <Tab.Screen
           name="Settings"
-          component={SettingsStack}
           options={{
             tabBarLabel: 'Configurações',
-            tabBarButton: ({ children, onLongPress, accessibilityState }) => (
-              <Pressable
-                onPress={openSettingsSheet}
-                onLongPress={onLongPress}
-                accessibilityRole="button"
-                accessibilityState={accessibilityState}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  opacity: pressed ? 0.7 : 1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                })}
-              >
-                {children}
-              </Pressable>
-            ),
+            tabBarButton: (props) => {
+              const { accessibilityState, children } = props;
+              return (
+                <Pressable
+                  onPress={openSettingsSheet}
+                  accessibilityRole="button"
+                  accessibilityState={accessibilityState}
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    opacity: pressed ? 0.7 : 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  })}
+                >
+                  {children}
+                </Pressable>
+              );
+            },
           }}
-        />
+        >
+          {() => <SettingsStack />}
+        </Tab.Screen>
       </Tab.Navigator>
 
-      <SettingsBottomSheet logout={logout} ref={settingsSheetRef} onSettingsPress={goToSettingsScreen} />
+      {/* BottomSheet renderizado no topo para não ficar limitado ao botão */}
+      <SettingsBottomSheet
+        ref={settingsSheetRef}
+        logout={logout}
+        onSettingsPress={handleSettingsPress}
+      />
     </>
   );
 }

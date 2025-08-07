@@ -156,6 +156,8 @@ export default function TabNavigator() {
             shadowRadius: 10,
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
           },
           tabBarLabelStyle: {
             fontSize: 12,
@@ -184,6 +186,16 @@ export default function TabNavigator() {
                     opacity: pressed ? 0.7 : 1,
                     alignItems: 'center',
                     justifyContent: 'center',
+                    backgroundColor: '#fff',
+                    paddingBottom: 5,
+                    paddingTop: 15,
+                    height: 60,
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                    shadowColor: '#000',
+                    shadowOpacity: 0.1,
+                    shadowOffset: { width: 0, height: -3 },
+                    shadowRadius: 10,
                   })}
                 >
                   {children}

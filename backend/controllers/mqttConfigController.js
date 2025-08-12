@@ -159,8 +159,6 @@ exports.getMqttStatus = async (req, res) => {
   }
 };
 
-const mqttService = require('../services/mqttClient');
-
 exports.discoverDevices = async (req, res) => {
   try {
     const foundDevices = [];

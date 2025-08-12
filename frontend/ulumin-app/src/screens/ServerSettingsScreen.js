@@ -49,6 +49,7 @@ export default function ServerSettingsScreen() {
   const fetchStatus = async () => {
     try {
       const stat = await mqttService.getMqttStatus();
+      console.log('Status MQTT do backend:', stat)
       setStatus(stat.status === 'connected' ? '✅ Conectado' : '❌ Desconectado');
     } catch (error) {
       console.error('Erro ao obter status MQTT:', error);
@@ -86,7 +87,9 @@ export default function ServerSettingsScreen() {
     } catch (error) {
       const message = error.response?.data?.message || 'Erro ao testar conexão.';
       Alert.alert('Erro', message);
-    } 
+    } finally {
+      setTesting(false);
+    }
   }
 
   const resetConfig = async () => {

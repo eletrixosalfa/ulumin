@@ -1,5 +1,6 @@
 const MqttConfig = require('../models/mqttConfig');
 const mqtt = require('mqtt');
+const mqttService = require('../services/mqttService');
 
 exports.createOrUpdateMqttConfig = async (req, res) => {
   try {
@@ -24,6 +25,13 @@ exports.createOrUpdateMqttConfig = async (req, res) => {
         owner: req.user.userId
       });
       await config.save();
+    }
+      // Recria conexão MQTT com nova configuração
+    try {
+      await mqttService.connectMqtt();
+    } catch (e) {
+      console.error('Erro ao reconectar MQTT após guardar config:', e.message);
+      // Continua, mas a conexão pode não estar ativa
     }
 
     res.status(200).json(config);
@@ -121,49 +129,31 @@ exports.resetMqttConfig = async (req, res) => {
       await config.save();
     }
 
+    await mqttService.connectMqtt();
+
     res.json({ message: 'Configuração resetada com sucesso', config });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao resetar configuração.', error: err.message });
   }
 };
 
+
 // 3 - Status da conexão MQTT (simple check)
 exports.getMqttStatus = async (req, res) => {
   try {
-    const config = await MqttConfig.findOne({ owner: req.user.userId });
-    if (!config) return res.status(404).json({ message: 'Nenhuma configuração encontrada.' });
+    // Apenas tenta pegar a conexão atual
+    let client;
+    try {
+      client = mqttService.getClient();
+    } catch {
+      // Se não estiver conectado ainda
+      return res.json({ status: 'disconnected', message: '❌ Desconectado' });
+    }
 
-    const protocol = config.ssl ? 'mqtts' : 'mqtt';
-    const url = `${protocol}://${config.host}:${config.port}`;
-    const options = { username: config.user, password: config.pass, connectTimeout: 3000 };
+    const status = client.connected ? 'connected' : 'disconnected';
+    const message = status === 'connected' ? '✅ Conectado' : '❌ Desconectado';
 
-    const client = mqtt.connect(url, options);
-    let responded = false;
-
-    client.on('connect', () => {
-      if (!responded) {
-        responded = true;
-        client.end();
-        return res.json({ status: 'connected', message: '✅ Conectado' });
-      }
-    });
-
-    client.on('error', (err) => {
-      if (!responded) {
-        responded = true;
-        client.end();
-        return res.json({ status: 'disconnected', message: '❌ Desconectado', error: err.message });
-      }
-    });
-
-    setTimeout(() => {
-      if (!responded) {
-        responded = true;
-        client.end();
-        return res.json({ status: 'disconnected', message: '❌ Desconectado (timeout)' });
-      }
-    }, 4000);
-
+    res.json({ status, message });
   } catch (err) {
     res.status(500).json({ message: 'Erro ao obter status.', error: err.message });
   }

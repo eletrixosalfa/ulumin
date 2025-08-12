@@ -139,7 +139,7 @@ useEffect(() => {
 
   function openModalToEdit(schedule) {
     setEditingSchedule(schedule);
-    setDevice(schedule.device._id || '');
+    setDevice(schedule.device?._id || '');
     setAction(schedule.action);
     const [hours, minutes] = schedule.time.split(':');
     const date = new Date();
@@ -210,7 +210,7 @@ useEffect(() => {
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
             <View style={styles.card}>
-              <Text>Dispositivo: {item.device.name || item.device._id}</Text>
+              <Text>Dispositivo: {item.device?.name || item.device?._id || 'Desconhecido'}</Text>
               <Text>Ação: {item.action.toUpperCase()}</Text>
               <Text>Hora: {item.time}</Text>
               <Text>Dias: {item.repeat.length > 0 ? item.repeat.join(', ') : 'Nenhum'}</Text>

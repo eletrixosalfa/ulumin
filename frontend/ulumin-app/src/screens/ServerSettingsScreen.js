@@ -129,12 +129,12 @@ export default function ServerSettingsScreen() {
             placeholder="Porta"
           />
 
-          <Text style={styles.label}>Usuário:</Text>
+          <Text style={styles.label}>Utilizador:</Text>
           <TextInput
             style={styles.input}
             value={config.user}
             onChangeText={(text) => setConfig({ ...config, user: text })}
-            placeholder="Usuário MQTT"
+            placeholder="Utilizador MQTT"
           />
 
           <Text style={styles.label}>Senha:</Text>

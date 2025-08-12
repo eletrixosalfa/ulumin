@@ -457,13 +457,14 @@ export default function DevicesScreen({ route, navigation }) {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
                   {[
                     'lightbulb',
-                    'fan',
                     'power-plug',
                     'television',
                     'camera',
                     'speaker',
                     'thermometer',
-                    'devices',
+                    'blinds',
+                    'light-switch',
+                    'motion-sensor',
                   ].map(iconName => (
                     <TouchableOpacity
                       key={iconName}

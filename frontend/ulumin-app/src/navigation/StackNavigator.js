@@ -18,10 +18,10 @@ export default function StackNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {userToken ? (
-        // Usuário logado: mostra a app principal
+        // Utilizador logado: mostra a app principal
         <Stack.Screen name="App" component={TabNavigator} />
       ) : (
-        // Usuário não logado: mostra login e registo
+        // Utulizador não logado: mostra login e registo
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />

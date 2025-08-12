@@ -95,7 +95,7 @@ function SettingsStack() {
       <Stack.Screen
         name="UserSettings"
         component={UserSettingsScreen}
-        options={{ headerTitle: 'Configurações de Usuário' }}
+        options={{ headerTitle: 'Configurações Utilizador' }}
       />
       <Stack.Screen
         name="ServerSettings"

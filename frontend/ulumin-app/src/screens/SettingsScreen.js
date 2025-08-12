@@ -11,7 +11,7 @@ export default function SettingsScreen({ navigation }) {
         style={styles.button}
         onPress={() => navigation.navigate('UserSettings')}
       >
-        <Text style={styles.buttonText}>Configurações de Usuário</Text>
+        <Text style={styles.buttonText}>Configurações de Utilizador</Text>
       </TouchableOpacity>
       
       <View style={styles.separator} />

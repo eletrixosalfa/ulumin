@@ -1,6 +1,6 @@
 const MqttConfig = require('../models/mqttConfig');
 const mqtt = require('mqtt');
-const mqttService = require('../services/mqttService');
+const mqttService = require('../services/mqttClient');
 
 exports.createOrUpdateMqttConfig = async (req, res) => {
   try {

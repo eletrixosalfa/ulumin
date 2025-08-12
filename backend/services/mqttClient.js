@@ -65,7 +65,29 @@ function getClient() {
   return client;
 }
 
+function announceDevices() {
+  if (!client) throw new Error('MQTT não conectado');
+  client.publish('ulumin/announce', 'announce');
+}
+
+function listenAnnounceResponses(onDeviceFound) {
+  if (!client) throw new Error('MQTT não conectado');
+  client.subscribe('ulumin/announce/response');
+  client.on('message', (topic, message) => {
+    if (topic === 'ulumin/announce/response') {
+      try {
+        const deviceInfo = JSON.parse(message.toString());
+        onDeviceFound(deviceInfo);
+      } catch (e) {
+        console.error('Resposta de announce inválida:', message.toString());
+      }
+    }
+  });
+}
+
 module.exports = {
   connectMqtt,
   getClient,
+  announceDevices,
+  listenAnnounceResponses,
 };

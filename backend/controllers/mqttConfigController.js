@@ -158,3 +158,23 @@ exports.getMqttStatus = async (req, res) => {
     res.status(500).json({ message: 'Erro ao obter status.', error: err.message });
   }
 };
+
+const mqttService = require('../services/mqttClient');
+
+exports.discoverDevices = async (req, res) => {
+  try {
+    const foundDevices = [];
+    mqttService.announceDevices();
+
+    // Escuta respostas por 3 segundos
+    mqttService.listenAnnounceResponses((deviceInfo) => {
+      foundDevices.push(deviceInfo);
+    });
+
+    setTimeout(() => {
+      res.json({ devices: foundDevices });
+    }, 3000);
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao descobrir dispositivos', error: err.message });
+  }
+};

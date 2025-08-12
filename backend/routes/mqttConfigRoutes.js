@@ -10,5 +10,6 @@ router.delete('/', auth, mqttController.deleteMqttConfig);
 router.post('/test', auth, mqttController.testMqttConnection);
 router.post('/reset', auth, mqttController.resetMqttConfig);
 router.get('/status', auth, mqttController.getMqttStatus);
+router.get('/discover', auth, mqttController.discoverDevices);
 
 module.exports = router;

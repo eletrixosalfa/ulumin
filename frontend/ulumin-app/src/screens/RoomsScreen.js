@@ -178,13 +178,6 @@ useEffect(() => {
 
             <View style={styles.buttonsContainer}>
               <TouchableOpacity
-                style={styles.buttonEdit}
-                onPress={() => openEditModal(item)}
-              >
-                <Text style={styles.buttonText}>✏️</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
                 style={styles.buttonDelete}
                 onPress={() => handleDeleteRoom(item._id)}
               >

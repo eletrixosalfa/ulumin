@@ -12,7 +12,7 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
   roomItem: {
-    flexDirection: 'row',        // alinhamento horizontal para o nome e botões
+    flexDirection: 'row',      
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 12,
@@ -21,10 +21,10 @@ export default StyleSheet.create({
   },
   roomName: {
     fontSize: 16,
-    flex: 1,                    // para ocupar espaço restante
+    flex: 1,                  
   },
 
-  // Botões de editar e deletar
+  // Botões de editar e eliminar
   buttonsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -33,14 +33,13 @@ export default StyleSheet.create({
     marginLeft: 10,
     paddingVertical: 6,
     paddingHorizontal: 10,
-    backgroundColor: '#FFD700', // amarelo para editar
     borderRadius: 4,
   },
   buttonDelete: {
     marginLeft: 10,
     paddingVertical: 6,
     paddingHorizontal: 10,
-    backgroundColor: '#FF3B30', // vermelho para deletar
+    backgroundColor: '#FF3B30', // vermelho para eliminar
     borderRadius: 4,
   },
   buttonText: {
@@ -52,7 +51,7 @@ export default StyleSheet.create({
   // Estilos para o modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)', // fundo escuro transparente
+    backgroundColor: 'rgba(0,0,0,0.5)', 
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -61,8 +60,8 @@ export default StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 10,
     padding: 20,
-    elevation: 10, // sombra android
-    shadowColor: '#000', // sombra ios
+    elevation: 10, 
+    shadowColor: '#000', 
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,

@@ -1,4 +1,4 @@
-import api from '../api/axios'; // importa o axios configurado
+import api from '../api/axios';
 
 export async function getRooms() {
   try {
@@ -32,7 +32,7 @@ export async function updateRoom(id, roomData) {
   }
 }
 
-// Função para deletar divisão
+// Função para eliminar divisão
 export async function deleteRoom(id) {
   try {
     const response = await api.delete(`/rooms/${id}`);

@@ -18,28 +18,28 @@ export async function createDevice(data) {
   return response.data;
 }
 
-// Deletar dispositivo
+// Eliminar dispositivo
 export async function deleteDevice(deviceId) {
   const headers = await getAuthHeaders();
   const response = await axios.delete(`${API_BASE_URL}/devices/${deviceId}`, { headers });
   return response.data;
 }
 
-// Buscar dispositivos por categoria
+// Procurar dispositivos por categoria
 export async function getDevicesByCategory(categoryId) {
   const headers = await getAuthHeaders();
   const response = await axios.get(`${API_BASE_URL}/devices/category/${categoryId}`, { headers });
   return response.data;
 }
 
-// Buscar dispositivos por divisão (room)
+// Procurar dispositivos por divisão
 export async function getDevicesByRoom(roomId) {
   const headers = await getAuthHeaders();
   const response = await axios.get(`${API_BASE_URL}/devices/room/${roomId}`, { headers });
   return response.data;
 }
 
-// Buscar dispositivos por categoria e divisão
+// Procurar dispositivos por categoria e divisão
 export async function getDevicesByCategoryAndRoom(categoryId, roomId) {
   const headers = await getAuthHeaders();
   const response = await axios.get(`${API_BASE_URL}/devices/category/${categoryId}/room/${roomId}`, { headers });

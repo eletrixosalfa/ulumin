@@ -10,7 +10,7 @@ exports.createDevice = async (req, res) => {
       status,
       ipAddress,
       category,
-      room,            // certifique-se que o modelo tem esse campo
+      room,         
       owner: req.user.userId
     });
 
@@ -36,7 +36,7 @@ exports.getDevicesByCategory = async (req, res) => {
   }
 };
 
-// NOVO: pegar dispositivos por room
+// Receber dispositivos por divisão
 exports.getDevicesByRoom = async (req, res) => {
   try {
     const { roomId } = req.params;
@@ -52,7 +52,7 @@ exports.getDevicesByRoom = async (req, res) => {
   }
 };
 
-// NOVO: pegar dispositivos filtrando por categoria E divisão (room)
+// Receber dispositivos filtrados por categoria e divisão
 exports.getDevicesByCategoryAndRoom = async (req, res) => {
   try {
     const { categoryId, roomId } = req.params;

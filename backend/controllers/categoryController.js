@@ -18,7 +18,7 @@ exports.createCategory = async (req, res) => {
 
 exports.getCategories = async (req, res) => {
   try {
-    // busca todas as categorias do usuário (sem filtro por room)
+    // procura todas as categorias do usuário (sem filtro por room)
     const categories = await Category.find({
       owner: req.user.userId,
     });

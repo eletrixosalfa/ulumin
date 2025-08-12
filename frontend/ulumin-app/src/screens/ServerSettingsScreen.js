@@ -71,7 +71,7 @@ export default function ServerSettingsScreen() {
       Alert.alert('Sucesso', 'Configuração guardada!');
       fetchStatus();
     } catch {
-      Alert.alert('Erro', 'Falha ao salvar configuração.');
+      Alert.alert('Erro', 'Falha ao guardar configuração.');
     } finally {
       setSaving(false);
     }

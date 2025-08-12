@@ -6,7 +6,7 @@ exports.getProfile = async (req, res) => {
     const user = await updateuser.findById(req.user.userId).select('-password');
     res.json(user);
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao buscar perfil do usuário' });
+    res.status(500).json({ message: 'Erro ao procurar perfil do usuário' });
   }
 };
 
@@ -36,7 +36,7 @@ exports.changePassword = async (req, res) => {
     }
 
     console.log("Senha atual digitada:", currentPassword);
-    console.log("Senha salva no banco (hash):", user.password);
+    console.log("Senha guardada no banco:", user.password);
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     console.log("Resultado da comparação de senha:", isMatch);

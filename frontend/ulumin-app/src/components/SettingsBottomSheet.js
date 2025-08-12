@@ -33,7 +33,7 @@ const SettingsBottomSheet = forwardRef(({ logout, onSettingsPress }, ref) => {
     );
   };
 
-  // Opções com as ações certas
+  // Opções com as ações 
   const options = [
     { id: 'settings', label: 'Configurações', style: 'NormalButton', onPress: handleSettingsPress },
     { id: 'logout', label: 'Sair', style: 'DangerButton', onPress: confirmLogout },

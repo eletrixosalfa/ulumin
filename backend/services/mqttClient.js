@@ -29,7 +29,7 @@ if (config.user && config.pass) {
       client.on('connect', () => {
         console.log('MQTT conectado!');
 
-        // Subscrever a um tópico de teste
+        // Subscrever um tópico de teste
         client.subscribe('ulumin/test', (err) => {
           if (err) {
             console.error('Erro ao se inscrever no tópico:', err);

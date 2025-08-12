@@ -1,4 +1,4 @@
-import api from '../api/axios'; // importa o axios configurado
+import api from '../api/axios';
 
 // Procurar configuração MQTT atual
 export async function getMqttConfig() {

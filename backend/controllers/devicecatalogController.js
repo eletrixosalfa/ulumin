@@ -1,6 +1,6 @@
 const DeviceCatalog = require('../models/DeviceCatalog');
 
-// GET all catalog devices
+// Receber todos os dispositivos do catálogo
 exports.getAllCatalogDevices = async (req, res) => {
   try {
     const devices = await DeviceCatalog.find();
@@ -11,7 +11,7 @@ exports.getAllCatalogDevices = async (req, res) => {
   }
 };
 
-// POST - add a new catalog device (opcional)
+// POST - adicionar um novo dispositivo ao catálogo
 exports.addCatalogDevice = async (req, res) => {
   const { name, category, icon } = req.body;
 

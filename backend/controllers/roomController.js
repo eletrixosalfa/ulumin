@@ -2,11 +2,11 @@ const Room = require('../models/Room');
 
 exports.createRoom = async (req, res) => {
   try {
-    const { name, description, icon } = req.body;  // adiciona icon aqui
+    const { name, description, icon } = req.body; 
     const newRoom = new Room({
       name,
       description,
-      icon,               // salva o icon
+      icon,              
       owner: req.user.userId,
     });
     await newRoom.save();
@@ -32,7 +32,7 @@ exports.updateRoom = async (req, res) => {
   try {
     const updated = await Room.findOneAndUpdate(
       { _id: req.params.id, owner: req.user.userId },
-      req.body,  // pode receber name, description, icon etc
+      req.body, 
       { new: true }
     );
     if (!updated) return res.status(404).json({ message: 'Divisão não encontrada.' });

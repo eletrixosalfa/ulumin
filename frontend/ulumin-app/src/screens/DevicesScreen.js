@@ -179,11 +179,11 @@ export default function DevicesScreen({ route, navigation }) {
   async function handleDeleteDevice(deviceId) {
     Alert.alert(
       'Confirmar exclusão',
-      'Tem certeza que deseja deletar este dispositivo?',
+      'Tem certeza que deseja eliminar este dispositivo?',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Deletar',
+          text: 'Eliminar',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -191,8 +191,8 @@ export default function DevicesScreen({ route, navigation }) {
               setDevices(prev => prev.filter(d => d._id !== deviceId));
               setCategoryDevices(prev => prev.filter(d => d._id !== deviceId));
             } catch (err) {
-              console.error('Erro ao deletar dispositivo:', err);
-              Alert.alert('Erro', 'Não foi possível deletar o dispositivo.');
+              console.error('Erro ao eliminar dispositivo:', err);
+              Alert.alert('Erro', 'Não foi possível eliminar o dispositivo.');
             }
           },
         },
@@ -203,11 +203,11 @@ export default function DevicesScreen({ route, navigation }) {
   async function handleDeleteCategory(categoryId) {
   Alert.alert(
     'Confirmar exclusão',
-    'Tem certeza que deseja deletar esta categoria?',
+    'Tem certeza que deseja eliminar esta categoria?',
     [
       { text: 'Cancelar', style: 'cancel' },
       {
-        text: 'Deletar',
+        text: 'Eliminar',
         style: 'destructive',
         onPress: async () => {
           try {
@@ -220,8 +220,8 @@ export default function DevicesScreen({ route, navigation }) {
               setModalDeviceVisible(false);
             }
           } catch (err) {
-            console.error('Erro ao deletar categoria:', err);
-            Alert.alert('Erro', 'Não foi possível deletar a categoria.');
+            console.error('Erro ao eliminar categoria:', err);
+            Alert.alert('Erro', 'Não foi possível eliminar a categoria.');
           }
         },
       },
@@ -291,7 +291,7 @@ export default function DevicesScreen({ route, navigation }) {
       {/* Nome do dispositivo abaixo do ícone */}
       <Text style={styles.deviceName}>{item.name}</Text>
 
-      {/* Botão deletar abaixo do nome, centralizado */}
+      {/* Botão eliminar abaixo do nome, centralizado */}
       <TouchableOpacity
         onPress={() => handleDeleteDevice(item._id)}
         style={styles.deleteButton}
@@ -303,9 +303,7 @@ export default function DevicesScreen({ route, navigation }) {
 />  
 )}
 
-
       {/* Modal seleção / criação categoria */}
-      {/* ... (restante do código do modal igual ao seu original) */}
       <Modal visible={modalCategoryVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -374,7 +372,7 @@ export default function DevicesScreen({ route, navigation }) {
         </View>
       </Modal>
 
-      {/* Modal adicionar dispositivo */}
+      {/* Modal para adicionar dispositivo */}
       <Modal visible={modalDeviceVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -429,7 +427,7 @@ export default function DevicesScreen({ route, navigation }) {
               </View>
             ) : (
               <Text style={{ marginBottom: 10, fontStyle: 'italic' }}>
-                Nenhum dispositivo nesta categoria ainda.
+                Ainda não há dispositivos nesta categoria.
               </Text>
             )}
 

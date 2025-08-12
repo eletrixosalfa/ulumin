@@ -44,7 +44,7 @@ export default function HomeScreen() {
         setTemperature(`${Math.round(data.main.temp)}°C`);
         setCity(data.name);
       } else {
-        setErrorMsg('Erro ao buscar dados do tempo');
+        setErrorMsg('Erro ao procurar dados do tempo');
       }
     } catch (error) {
       console.error('Erro na requisição do tempo:', error);

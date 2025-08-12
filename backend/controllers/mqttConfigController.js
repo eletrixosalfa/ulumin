@@ -28,7 +28,7 @@ exports.createOrUpdateMqttConfig = async (req, res) => {
 
     res.status(200).json(config);
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao salvar configurações MQTT.', error: err.message });
+    res.status(500).json({ message: 'Erro ao guardar configurações MQTT.', error: err.message });
   }
 };
 
@@ -38,7 +38,7 @@ exports.getMqttConfig = async (req, res) => {
     if (!config) return res.status(404).json({ message: 'Nenhuma configuração encontrada.' });
     res.json(config);
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao buscar configurações.', error: err.message });
+    res.status(500).json({ message: 'Erro ao procurar configurações.', error: err.message });
   }
 };
 
@@ -52,7 +52,7 @@ exports.deleteMqttConfig = async (req, res) => {
   }
 };
 
-// 1 - Testar conexão MQTT (corrigido)
+// 1 - Testar conexão MQTT
 exports.testMqttConnection = async (req, res) => {
   const { host, user, pass, port, ssl } = req.body;
   try {

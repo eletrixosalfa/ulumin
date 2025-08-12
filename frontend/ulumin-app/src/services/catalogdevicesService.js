@@ -11,7 +11,7 @@ async function getAuthHeaders() {
   };
 }
 
-// ✅ Buscar dispositivos por categoria
+// Procurar dispositivos por categoria
 export async function getDevicesByCategory(categoryId) {
   try {
     const headers = await getAuthHeaders();
@@ -20,12 +20,12 @@ export async function getDevicesByCategory(categoryId) {
     });
     return response.data;
   } catch (error) {
-    console.error('Erro ao buscar dispositivos por categoria:', error.response?.data || error.message);
-    throw new Error('Erro ao buscar dispositivos');
+    console.error('Erro ao procurar dispositivos por categoria:', error.response?.data || error.message);
+    throw new Error('Erro ao procurar dispositivos');
   }
 }
 
-// ✅ Criar dispositivo
+// Criar dispositivo
 export async function createDevice(device) {
   try {
     const headers = await getAuthHeaders();
@@ -37,6 +37,7 @@ export async function createDevice(device) {
   }
 }
 
+// Atualizar dispositivo
 export async function updateDevice(deviceId, deviceData) {
   try {
     const headers = await getAuthHeaders();
@@ -48,6 +49,7 @@ export async function updateDevice(deviceId, deviceData) {
   }
 }
 
+// Eliminar dispositivo
 export async function deleteDevice(deviceId) {
   try {
     const headers = await getAuthHeaders();

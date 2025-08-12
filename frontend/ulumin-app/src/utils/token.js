@@ -13,7 +13,7 @@ export async function setToken(token) {
   try {
     await AsyncStorage.setItem('token', token);
   } catch (e) {
-    console.log('Erro ao salvar token:', e);
+    console.log('Erro ao guardar token:', e);
   }
 }
 

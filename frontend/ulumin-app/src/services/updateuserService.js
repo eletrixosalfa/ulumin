@@ -3,7 +3,7 @@ import api from '../api/axios';
 // Função para obter dados do perfil do usuário
 export async function getProfile() {
   try {
-    const response = await api.get('/updateuser/profile'); // ajustar endpoint conforme backend
+    const response = await api.get('/updateuser/profile');
     return response.data;
   } catch (error) {
     console.error('Erro ao buscar perfil:', error);

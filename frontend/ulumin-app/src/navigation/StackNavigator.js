@@ -11,7 +11,7 @@ export default function StackNavigator() {
   const { userToken, loading } = useContext(AuthContext);
 
   if (loading) {
-    // Pode retornar um loading ou null enquanto verifica o token
+    // enquanto verifica o token
     return null;
   }
 

@@ -8,7 +8,7 @@ export default function DeviceActionsScreen({ route }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Ações do Dispositivo</Text>
-      {/* Adicionar as ações que quiser */}
+      {/* Adicionar as ações futuramente */}
     </View>
   );
 }

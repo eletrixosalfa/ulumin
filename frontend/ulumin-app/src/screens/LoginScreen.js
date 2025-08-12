@@ -2,14 +2,14 @@ import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, Button, TouchableOpacity } from 'react-native';
 import styles from '../styles/LoginScreen.styles';
 import api from '../api/axios';
-import { AuthContext } from '../context/AuthContext'; // importa o contexto
+import { AuthContext } from '../context/AuthContext';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const { login } = useContext(AuthContext); // pega função login do contexto
+  const { login } = useContext(AuthContext);
 
   const handleLogin = async () => {
     try {
@@ -18,8 +18,7 @@ export default function LoginScreen({ navigation }) {
       if (!token) throw new Error('Token não recebido');
 
       await login(token); // chama login do contexto que armazena token e atualiza estado
-
-      // navegação será atualizada automaticamente pelo StackNavigator (condicional)
+      // navegação será atualizada automaticamente pelo StackNavigator 
 
     } catch (error) {
       setErrorMsg('Erro ao fazer login. Verifica email e senha.');

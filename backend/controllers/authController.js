@@ -1,5 +1,20 @@
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const validator = require('validator');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer'); // para enviar email, configurar depois
+const nodemailer = require('nodemailer');
+const User = require('../models/User');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'segredo_temporario';
+
+const validatePassword = (password) => {
+  if (password.length < 8) return false;
+  if (!/[A-Z]/.test(password)) return false;
+  if (!/[a-z]/.test(password)) return false;
+  if (!/[0-9]/.test(password)) return false;
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return false;
+  return true;
+};
 
 exports.register = async (req, res) => {
   const { email, password } = req.body;
@@ -21,8 +36,6 @@ exports.register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Gera token de confirmação
     const emailConfirmationToken = crypto.randomBytes(32).toString('hex');
 
     const user = new User({
@@ -30,13 +43,13 @@ exports.register = async (req, res) => {
       password: hashedPassword,
       isEmailConfirmed: false,
       emailConfirmationToken,
+      // emailConfirmationExpires: Date.now() + 24*60*60*1000 // opcional
     });
 
     await user.save();
 
-    // Enviar email de confirmação (exemplo simples)
     const transporter = nodemailer.createTransport({
-      // configura teu serviço SMTP aqui
+      // Configura aqui
     });
 
     const confirmUrl = `https://teusite.com/confirm-email?token=${emailConfirmationToken}`;
@@ -58,7 +71,6 @@ exports.register = async (req, res) => {
   }
 };
 
-
 exports.confirmEmail = async (req, res) => {
   const { token } = req.query;
 
@@ -74,15 +86,14 @@ exports.confirmEmail = async (req, res) => {
 
     user.isEmailConfirmed = true;
     user.emailConfirmationToken = undefined;
+    // user.emailConfirmationExpires = undefined; // se usares expiração
     await user.save();
 
     res.status(200).json({ message: 'Email confirmado com sucesso!' });
-
   } catch (err) {
     res.status(500).json({ message: 'Erro ao confirmar email.', error: err.message });
   }
 };
-
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;

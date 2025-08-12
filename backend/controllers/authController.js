@@ -43,7 +43,6 @@ exports.register = async (req, res) => {
       password: hashedPassword,
       isEmailConfirmed: false,
       emailConfirmationToken,
-      // emailConfirmationExpires: Date.now() + 24*60*60*1000 // opcional
     });
 
     await user.save();

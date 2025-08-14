@@ -8,9 +8,14 @@ export default function DeviceActionsScreen({ route, navigation }) {
   const [actions, setActions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (device?.model) fetchActions();
-  }, [device.model]);
+useEffect(() => {
+  if (device?.model) {
+    fetchActions();
+  } else {
+    setActions([]);
+    setLoading(false);  
+  }
+}, [device.model]);
 
   async function fetchActions() {
     setLoading(true);

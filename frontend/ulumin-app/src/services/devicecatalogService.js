@@ -35,3 +35,15 @@ export async function getDeviceActions(model) {
     return [];
   }
 } 
+
+// Excluir dispositivo
+export async function deleteDevice(deviceId) {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await axios.delete(`${API_BASE_URL}/devices/${deviceId}`, { headers });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao deletar dispositivo:', error.response?.data || error.message);
+    throw new Error('Não foi possível excluir o dispositivo');
+  }
+}

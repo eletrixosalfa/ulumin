@@ -49,7 +49,6 @@ export default function DevicesScreen({ route, navigation }) {
     try {
       const data = await getDevicesByRoom(roomId);
       setDevices(data);
-      console.log(data);
     } catch (err) {
       setError('Erro ao carregar dispositivos da divisão.');
       console.error(err);

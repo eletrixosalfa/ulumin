@@ -3,12 +3,10 @@ const deviceCatalog = require('../models/DeviceCatalog');
 module.exports = {
   getActionsByModel: (req, res) => {
     const { model } = req.params;
-    const found = deviceCatalog.find(d => d.model === model);
-    if (found) {
-      res.json({ actions: found.actions });
-    } else {
-      res.json({ actions: [] });
-    }
+
+    const found = deviceCatalog.find(d => d.model.toLowerCase() === model.toLowerCase());
+
+    res.json({ actions: found ? found.actions : [] });
   },
 
   getAllCatalogDevices: (req, res) => {

@@ -7,27 +7,22 @@ import {
   Modal,
   TouchableOpacity,
   Alert,
-  TextInput,
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {
-  getDevicesByCategoryAndRoom,
   getDevicesByRoom,
   createDevice,
   deleteDevice,
 } from '../services/devicesService';
 
-import {
-  getCategories,
-  createCategory,
-  deleteCategory
-} from '../services/categoriesService';
-
+import { getCategories } from '../services/categoriesService';
 import { discoverDevices } from '../services/mqttService';
 
 import styles from '../styles/DevicesScreen.styles';
+
+import {useFocusEffect} from '@react-navigation/native'
 
 export default function DevicesScreen({ route, navigation }) {
   const { roomId, roomName } = route.params;
@@ -35,26 +30,19 @@ export default function DevicesScreen({ route, navigation }) {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [devices, setDevices] = useState([]);
-  const [categoryDevices, setCategoryDevices] = useState([]);
-
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [loadingDevices, setLoadingDevices] = useState(false);
-  const [loadingCategoryDevices, setLoadingCategoryDevices] = useState(false);
-
   const [error, setError] = useState(null);
 
-  const [modalCategoryVisible, setModalCategoryVisible] = useState(false);
   const [modalDeviceVisible, setModalDeviceVisible] = useState(false);
 
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [newDeviceName, setNewDeviceName] = useState('');
-  const [newDeviceIcon, setNewDeviceIcon] = useState('devices');
-
-  const [selectedExistingDevice, setSelectedExistingDevice] = useState(null);
-
-  // Novos estados para dispositivos descobertos via MQTT
+  // Dispositivos reais via MQTT
   const [discoveredDevices, setDiscoveredDevices] = useState([]);
   const [loadingDiscoveredDevices, setLoadingDiscoveredDevices] = useState(false);
+
+  // Novos estados para seleção
+  const [selectedDispositivo, setSelectedDispositivo] = useState(null);
+  const [newDeviceIcon, setNewDeviceIcon] = useState('devices');
 
   useEffect(() => {
     fetchCategories();
@@ -75,224 +63,43 @@ export default function DevicesScreen({ route, navigation }) {
     }
   }
 
-  async function fetchDevicesByCategory(categoryId) {
-    setLoadingCategoryDevices(true);
-    setError(null);
-    try {
-      const data = await getDevicesByCategoryAndRoom(categoryId, roomId);
-      setCategoryDevices(data);
-    } catch (err) {
-      setError('Erro ao carregar dispositivos da categoria.');
-      console.error(err);
-    } finally {
-      setLoadingCategoryDevices(false);
-    }
-  }
-
   async function fetchCategories() {
     setLoadingCategories(true);
     setError(null);
     try {
       const cats = await getCategories();
       setCategories(cats);
+      if (cats.length > 0) setSelectedCategory(cats[0]);
     } catch (err) {
       setError('Erro ao carregar categorias.');
+      setCategories([]);
+      setSelectedCategory(null);
       console.error(err);
     } finally {
       setLoadingCategories(false);
     }
   }
 
-  async function onSelectCategory(category) {
-    setSelectedCategory(category);
-    await fetchDevicesByCategory(category._id);
-    setModalCategoryVisible(false);
-    setModalDeviceVisible(true);
-    setNewDeviceName('');
-    setNewDeviceIcon('devices');
-    setSelectedExistingDevice(null);
-
-    // Buscar dispositivos reais via MQTT
-    setLoadingDiscoveredDevices(true);
-    setDiscoveredDevices([]);
-    try {
-      const found = await discoverDevices();
-      setDiscoveredDevices(found);
-    } catch (err) {
-      setDiscoveredDevices([]);
-      console.error('Erro ao descobrir dispositivos MQTT:', err);
-    } finally {
-      setLoadingDiscoveredDevices(false);
-    }
-  }
-
-  async function handleAddCategory() {
-    if (!newCategoryName.trim()) {
-      Alert.alert('Erro', 'O nome da categoria não pode estar vazio.');
-      return;
-    }
-    try {
-      const createdCategory = await createCategory({ name: newCategoryName.trim() });
-      setCategories(prev => [...prev, createdCategory]);
-      setSelectedCategory(createdCategory);
-      setModalCategoryVisible(false);
-      setNewCategoryName('');
-      await fetchDevicesByCategory(createdCategory._id);
-      setModalDeviceVisible(true);
-      setNewDeviceName('');
-      setNewDeviceIcon('devices');
-      setSelectedExistingDevice(null);
-
-      // Buscar dispositivos reais via MQTT
-      setLoadingDiscoveredDevices(true);
-      setDiscoveredDevices([]);
-      try {
-        const found = await discoverDevices();
-        setDiscoveredDevices(found);
-      } catch (err) {
-        setDiscoveredDevices([]);
-        console.error('Erro ao descobrir dispositivos MQTT:', err);
-      } finally {
-        setLoadingDiscoveredDevices(false);
-      }
-    } catch (err) {
-      console.error('Erro ao criar categoria:', err);
-      Alert.alert('Erro', 'Não foi possível criar a categoria.');
-    }
-  }
-
-  async function handleAddDeviceFromDiscovered(device) {
-    try {
-      const createdDevice = await createDevice({
-        name: device.name,
-        category: selectedCategory._id,
-        room: roomId,
-        icon: newDeviceIcon || 'devices',
-        mqttId: device.id, // opcional: guardar id real do dispositivo
-        model: device.model // opcional: guardar modelo
-      });
-
-      setCategoryDevices(prev => [...prev, createdDevice]);
-      setDevices(prev => [...prev, createdDevice]);
-      setModalDeviceVisible(false);
-      setNewDeviceName('');
-      setNewDeviceIcon('devices');
-      setSelectedCategory(null);
-      setSelectedExistingDevice(null);
-      setDiscoveredDevices([]);
-    } catch (err) {
-      console.error('Erro ao adicionar dispositivo real:', err);
-      Alert.alert('Erro', 'Não foi possível adicionar o dispositivo real.');
-    }
-  }
-
-  async function handleAddDevice() {
-    if (selectedExistingDevice) {
-      try {
-        const createdDevice = await createDevice({
-          name: selectedExistingDevice.name,
-          category: selectedExistingDevice.category,
-          room: roomId,
-          icon: selectedExistingDevice.icon || 'devices',
-        });
-        setCategoryDevices(prev => [...prev, createdDevice]);
-        setDevices(prev => [...prev, createdDevice]);
-        setModalDeviceVisible(false);
-        setSelectedCategory(null);
-        setSelectedExistingDevice(null);
-      } catch (err) {
-        console.error('Erro ao duplicar dispositivo:', err);
-        Alert.alert('Erro', 'Não foi possível adicionar o dispositivo.');
-      }
-      return;
-    }
-
-    if (!newDeviceName.trim()) {
-      Alert.alert('Erro', 'O nome do dispositivo não pode estar vazio.');
-      return;
-    }
-    try {
-      const createdDevice = await createDevice({
-        name: newDeviceName.trim(),
-        category: selectedCategory._id,
-        room: roomId,
-        icon: newDeviceIcon,
-      });
-
-      setCategoryDevices(prev => [...prev, createdDevice]);
-      setDevices(prev => [...prev, createdDevice]);
-
-      setModalDeviceVisible(false);
-      setNewDeviceName('');
-      setNewDeviceIcon('devices');
-      setSelectedCategory(null);
-      setSelectedExistingDevice(null);
-    } catch (err) {
-      console.error('Erro ao criar dispositivo:', err);
-      Alert.alert('Erro', 'Não foi possível adicionar o dispositivo.');
-    }
-  }
-
-  async function handleDeleteDevice(deviceId) {
-    Alert.alert(
-      'Confirmar exclusão',
-      'Tem certeza que deseja eliminar este dispositivo?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteDevice(deviceId);
-              setDevices(prev => prev.filter(d => d._id !== deviceId));
-              setCategoryDevices(prev => prev.filter(d => d._id !== deviceId));
-            } catch (err) {
-              console.error('Erro ao eliminar dispositivo:', err);
-              Alert.alert('Erro', 'Não foi possível eliminar o dispositivo.');
-            }
-          },
-        },
-      ]
-    );
-  }
-
-  async function handleDeleteCategory(categoryId) {
-    Alert.alert(
-      'Confirmar exclusão',
-      'Tem certeza que deseja eliminar esta categoria?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteCategory(categoryId);
-              setCategories(prev => prev.filter(cat => cat._id !== categoryId));
-
-              if (selectedCategory?._id === categoryId) {
-                setSelectedCategory(null);
-                setModalDeviceVisible(false);
-              }
-            } catch (err) {
-              console.error('Erro ao eliminar categoria:', err);
-              Alert.alert('Erro', 'Não foi possível eliminar a categoria.');
-            }
-          },
-        },
-      ]
-    );
-  }
-
+  // Ao clicar no +, abre direto o modal de adicionar dispositivo e busca dispositivos reais
   useEffect(() => {
     navigation.setOptions({
       title: `Dispositivos - ${roomName}`,
       headerRight: () => (
         <TouchableOpacity
-          onPress={() => {
-            setModalCategoryVisible(true);
-            setNewCategoryName('');
+          onPress={async () => {
+            setModalDeviceVisible(true);
+            setLoadingDiscoveredDevices(true);
+            setDiscoveredDevices([]);
+            setSelectedDispositivo(null);
+            setNewDeviceIcon('devices');
+            try {
+              const found = await discoverDevices();
+              setDiscoveredDevices(found);
+            } catch (err) {
+              setDiscoveredDevices([]);
+            } finally {
+              setLoadingDiscoveredDevices(false);
+            }
           }}
           style={{ marginRight: 15 }}
         >
@@ -301,6 +108,37 @@ export default function DevicesScreen({ route, navigation }) {
       ),
     });
   }, [navigation, roomName]);
+
+  async function handleAddDeviceFromDiscovered(device) {
+    if (!selectedCategory) {
+      Alert.alert('Erro', 'Nenhuma categoria disponível.');
+      return;
+    }
+    try {
+      const createdDevice = await createDevice({
+        name: device.name,
+        category: selectedCategory._id,
+        room: roomId,
+        icon: device.icon || 'devices',
+        mqttId: device.id,
+        model: device.model,
+      });
+      setDevices(prev => [...prev, createdDevice]);
+      setModalDeviceVisible(false);
+      setDiscoveredDevices([]);
+      setSelectedDispositivo(null);
+      setNewDeviceIcon('devices');
+    } catch (err) {
+      console.error('Erro ao adicionar dispositivo', err);
+      Alert.alert('Erro', 'Não foi possível adicionar o dispositivo');
+    }
+  }
+
+   useFocusEffect(
+    React.useCallback(() => {
+      fetchDevicesInRoom();
+    }, [roomId])
+  );
 
   if (loadingCategories || loadingDevices) {
     return (
@@ -344,109 +182,32 @@ export default function DevicesScreen({ route, navigation }) {
                 <Icon name={item.icon || 'devices'} size={40} color="#333" />
               </View>
               <Text style={styles.deviceName}>{item.name}</Text>
-              <TouchableOpacity
-                onPress={() => handleDeleteDevice(item._id)}
-                style={styles.deleteButton}
-              >
-                <Icon name="delete" size={24} color="#cc0000" />
-              </TouchableOpacity>
             </TouchableOpacity>
           )}
         />
       )}
 
-      {/* Modal seleção / criação categoria */}
-      <Modal visible={modalCategoryVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Selecione uma categoria</Text>
-
-            <ScrollView style={{ maxHeight: 200, marginVertical: 10 }}>
-              {categories.map(cat => (
-                <View
-                  key={cat._id}
-                  style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}
-                >
-                  <TouchableOpacity
-                    style={{
-                      flex: 1,
-                      padding: 12,
-                      backgroundColor: '#eee',
-                      borderRadius: 8,
-                    }}
-                    onPress={() => onSelectCategory(cat)}
-                  >
-                    <Text style={{ fontSize: 16 }}>{cat.name}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteCategory(cat._id)}
-                    style={{ marginLeft: 10, padding: 6 }}
-                  >
-                    <Icon name="delete" size={24} color="#cc0000" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
-
-            <Text style={{ marginTop: 10 }}>Ou adicione uma nova categoria:</Text>
-            <TextInput
-              placeholder="Nome da nova categoria"
-              value={newCategoryName}
-              onChangeText={setNewCategoryName}
-              style={{
-                borderWidth: 1,
-                borderColor: '#ccc',
-                borderRadius: 5,
-                paddingHorizontal: 8,
-                paddingVertical: 6,
-                marginTop: 5,
-                marginBottom: 15,
-              }}
-              autoFocus
-            />
-
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-              <TouchableOpacity
-                onPress={() => setModalCategoryVisible(false)}
-                style={{ marginRight: 15 }}
-              >
-                <Text style={{ color: '#666' }}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleAddCategory}
-                disabled={!newCategoryName.trim()}
-                style={{ opacity: newCategoryName.trim() ? 1 : 0.5 }}
-              >
-                <Text style={{ color: '#6e3b6e', fontWeight: 'bold' }}>Adicionar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal para adicionar dispositivo */}
+      {/* Modal para adicionar dispositivo real */}
       <Modal visible={modalDeviceVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>
-              Adicionar dispositivo em "{selectedCategory?.name}"
+              Adicionar Dispositivo
             </Text>
-
-            {/* Dispositivos reais descobertos via MQTT */}
-            <Text style={{ fontWeight: 'bold', marginBottom: 5, marginTop: 10 }}>
-              Dispositivos reais encontrados na rede:
+            <Text style={{ fontWeight: 'bold', marginBottom: 10, marginTop: 10 }}>
+              Dispositivos encontrados na rede:
             </Text>
             {loadingDiscoveredDevices ? (
               <ActivityIndicator size="small" color="#007AFF" />
             ) : discoveredDevices.length > 0 ? (
-              <ScrollView style={{ maxHeight: 120, marginBottom: 10 }}>
+              <ScrollView style={{ maxHeight: 200, marginBottom: 10 }}>
                 {discoveredDevices.map(device => (
                   <TouchableOpacity
                     key={device.id}
-                    onPress={() => handleAddDeviceFromDiscovered(device)}
+                    onPress={() => setSelectedDispositivo(device)}
                     style={{
-                      padding: 8,
-                      backgroundColor: '#e0ffe0',
+                      padding: 14,
+                      backgroundColor: selectedDispositivo?.id === device.id ? '#cceeff' : '#e0ffe0',
                       borderRadius: 8,
                       marginBottom: 5,
                     }}
@@ -459,7 +220,7 @@ export default function DevicesScreen({ route, navigation }) {
                         style={{ marginRight: 10 }}
                       />
                       <Text style={{ color: '#333' }}>
-                        {device.name} ({device.model}) - ID: {device.id}
+                        {device.name}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -467,138 +228,70 @@ export default function DevicesScreen({ route, navigation }) {
               </ScrollView>
             ) : (
               <Text style={{ marginBottom: 10, fontStyle: 'italic' }}>
-                Nenhum dispositivo real encontrado.
+                Nenhum dispositivo encontrado.
               </Text>
             )}
 
-            {/* Dispositivos já existentes */}
-            {loadingCategoryDevices ? (
-              <ActivityIndicator size="small" color="#007AFF" />
-            ) : categoryDevices.length > 0 ? (
-              <View style={{ maxHeight: 150, marginBottom: 10 }}>
-                <Text style={{ fontWeight: 'bold', marginBottom: 5 }}>
-                  Dispositivos já existentes:
-                </Text>
-                <ScrollView>
-                  {categoryDevices.map(dev => {
-                    const selected = selectedExistingDevice?._id === dev._id;
-                    return (
-                      <TouchableOpacity
-                        key={dev._id}
-                        onPress={() => {
-                          if (selectedExistingDevice?._id === dev._id) {
-                            setSelectedExistingDevice(null);
-                            setNewDeviceName('');
-                            setNewDeviceIcon('devices');
-                          } else {
-                            setSelectedExistingDevice(dev);
-                            setNewDeviceName('');
-                            setNewDeviceIcon('devices');
-                          }
-                        }}
-                        style={{
-                          padding: 8,
-                          backgroundColor: selected ? '#6e3b6e' : '#eee',
-                          borderRadius: 8,
-                          marginBottom: 5,
-                        }}
-                      >
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <Icon
-                            name={dev.icon || 'devices'}
-                            size={24}
-                            color={selected ? '#fff' : '#333'}
-                            style={{ marginRight: 10 }}
-                          />
-                          <Text style={{ color: selected ? '#fff' : '#000' }}>{dev.name}</Text>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-            ) : (
-              <Text style={{ marginBottom: 10, fontStyle: 'italic' }}>
-                Ainda não há dispositivos nesta categoria.
-              </Text>
-            )}
-
-            {/* Adicionar dispositivo manualmente */}
-            <Text style={{ marginTop: 10 }}>
-              {selectedExistingDevice
-                ? 'Você está duplicando este dispositivo.'
-                : 'Nome do dispositivo:'}
-            </Text>
-            {!selectedExistingDevice && (
-              <>
-                <TextInput
-                  placeholder="Digite o nome"
-                  value={newDeviceName}
-                  onChangeText={setNewDeviceName}
-                  autoFocus
+            {/* Escolher ícone */}
+            <Text style={{ marginTop: 10, fontWeight: 'bold'}}>Escolha um ícone:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10}}>
+              {[
+                'lightbulb',
+                'light-switch',
+                'motion-sensor',
+                'television',
+                'camera',
+                'speaker',
+                'blinds',
+              ].map(iconName => (
+                <TouchableOpacity
+                  key={iconName}
+                  onPress={() => setNewDeviceIcon(iconName)}
                   style={{
-                    borderWidth: 1,
-                    borderColor: '#ccc',
+                    marginRight: 15,
+                    padding: 5,
                     borderRadius: 5,
-                    paddingHorizontal: 8,
-                    paddingVertical: 6,
-                    marginTop: 5,
+                    backgroundColor: newDeviceIcon === iconName ? '#6e3b6e' : '#eee',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 50,
+                    height: 50,
                   }}
-                />
+                >
+                  <Icon
+                    name={iconName}
+                    size={30}
+                    color={newDeviceIcon === iconName ? '#fff' : '#666'}
+                  />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
 
-                <Text style={{ marginTop: 10 }}>Escolha um ícone:</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
-                  {[
-                    'lightbulb',
-                    'power-plug',
-                    'television',
-                    'camera',
-                    'speaker',
-                    'thermometer',
-                    'blinds',
-                    'light-switch',
-                    'motion-sensor',
-                  ].map(iconName => (
-                    <TouchableOpacity
-                      key={iconName}
-                      onPress={() => setNewDeviceIcon(iconName)}
-                      style={{
-                        marginRight: 15,
-                        padding: 5,
-                        borderRadius: 5,
-                        backgroundColor: newDeviceIcon === iconName ? '#6e3b6e' : '#eee',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 50,
-                        height: 50,
-                      }}
-                    >
-                      <Icon
-                        name={iconName}
-                        size={30}
-                        color={newDeviceIcon === iconName ? '#fff' : '#666'}
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </>
-            )}
-
+            {/* Botão adicionar */}
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 15 }}>
               <TouchableOpacity
                 onPress={() => {
                   setModalDeviceVisible(false);
-                  setSelectedCategory(null);
-                  setSelectedExistingDevice(null);
                   setDiscoveredDevices([]);
+                  setSelectedDispositivo(null);
+                  setNewDeviceIcon('devices');
                 }}
                 style={{ marginRight: 15 }}
               >
                 <Text style={{ color: '#666' }}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleAddDevice} disabled={
-                !selectedExistingDevice && !newDeviceName.trim()
-              } style={{ opacity: (!selectedExistingDevice && !newDeviceName.trim()) ? 0.5 : 1 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (selectedDispositivo) {
+                    handleAddDeviceFromDiscovered({
+                      ...selectedDispositivo,
+                      icon: newDeviceIcon
+                    });
+                  }
+                }}
+                disabled={!selectedDispositivo}
+                style={{ opacity: selectedDispositivo ? 1 : 0.5 }}
+              >
                 <Text style={{ color: '#6e3b6e', fontWeight: 'bold' }}>Adicionar</Text>
               </TouchableOpacity>
             </View>

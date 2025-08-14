@@ -1,7 +1,7 @@
 module.exports = [
   {
     model: 'Lights',
-    actions: ['Ligar', 'Desligar', 'Mudar cor', 'Temporizar'],
+    actions: ['Ligar', 'Desligar'],
   },
   {
     model: 'Blinds',

@@ -8,8 +8,8 @@ export default function DeviceActionsScreen({ route, navigation }) {
   const { device } = route.params;
   const [actions, setActions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeActions, setActiveActions] = useState({});
-  const pulseAnim = useRef(new Animated.Value(1)).current; // Animação de pulse
+  const pulseAnim = useRef(new Animated.Value(1)).current; 
+  const [activeAction, setActiveAction] = useState(null);
 
   const iconMap = {
     'Ligar': 'power',
@@ -44,19 +44,16 @@ export default function DeviceActionsScreen({ route, navigation }) {
   }
 
   function handleActionPress(action) {
-    setActiveActions(prev => ({
-      ...prev,
-      [action]: !prev[action]
-    }));
+  // Se já estava ativa, desativa; senão, ativa a selecionada
+  setActiveAction(prev => (prev === action ? null : action));
 
-    Animated.sequence([
-      Animated.timing(pulseAnim, { toValue: 1.2, duration: 150, useNativeDriver: true }),
-      Animated.timing(pulseAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
-    ]).start();
+  Animated.sequence([
+    Animated.timing(pulseAnim, { toValue: 1.2, duration: 150, useNativeDriver: true }),
+    Animated.timing(pulseAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
+  ]).start();
 
-    // Chamada de Teste
-    Alert.alert('Ação', `A executar: ${action}`);
-  }
+  // Alert.alert('Ação', `A executar: ${action}`);
+}
 
   async function handleDelete() {
     Alert.alert(
@@ -87,7 +84,7 @@ export default function DeviceActionsScreen({ route, navigation }) {
       ) : actions.length > 0 ? (
         <View style={styles.actionsContainer}>
           {actions.map(action => {
-            const isActive = activeActions[action];
+            const isActive = activeAction === action;
             return (
               <Animated.View key={action} style={{ transform: [{ scale: isActive ? pulseAnim : 1 }] }}>
                 <TouchableOpacity

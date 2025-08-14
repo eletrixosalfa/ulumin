@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,18 +8,15 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Animated,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
 import {
   getDevicesByRoom,
   createDevice,
 } from '../services/devicesService';
-
 import { discoverDevices } from '../services/mqttService';
-
 import styles from '../styles/DevicesScreen.styles';
-
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function DevicesScreen({ route, navigation }) {
@@ -31,13 +28,13 @@ export default function DevicesScreen({ route, navigation }) {
 
   const [modalDeviceVisible, setModalDeviceVisible] = useState(false);
 
-  // Dispositivos reais via MQTT
   const [discoveredDevices, setDiscoveredDevices] = useState([]);
   const [loadingDiscoveredDevices, setLoadingDiscoveredDevices] = useState(false);
 
-  // Novos estados para seleção
   const [selectedDispositivo, setSelectedDispositivo] = useState(null);
   const [newDeviceIcon, setNewDeviceIcon] = useState('devices');
+
+  const [activeDeviceId, setActiveDeviceId] = useState(null);
 
   useEffect(() => {
     fetchDevicesInRoom();
@@ -48,7 +45,8 @@ export default function DevicesScreen({ route, navigation }) {
     setError(null);
     try {
       const data = await getDevicesByRoom(roomId);
-      setDevices(data);
+      // adiciona isOn para cada dispositivo, se não existir
+      setDevices(data.map(d => ({ ...d, isOn: d.isOn || false })));
     } catch (err) {
       setError('Erro ao carregar dispositivos da divisão.');
       console.error(err);
@@ -57,7 +55,6 @@ export default function DevicesScreen({ route, navigation }) {
     }
   }
 
-  // Ao clicar no +, abre direto o modal de adicionar dispositivo e procurar dispositivos reais
   useEffect(() => {
     navigation.setOptions({
       title: `Dispositivos - ${roomName}`,
@@ -93,9 +90,10 @@ export default function DevicesScreen({ route, navigation }) {
         room: roomId,
         icon: device.icon || 'devices',
         mqttId: device.id,
-        ...(device.model ? {model: device.model} : {}),
+        ...(device.model ? { model: device.model } : {}),
       });
-      setDevices(prev => [...prev, createdDevice]);
+      setDevices(prev => [])
+      setDevices(prev => [...prev, { ...createdDevice, isOn: false }]);
       setModalDeviceVisible(false);
       setDiscoveredDevices([]);
       setSelectedDispositivo(null);
@@ -104,6 +102,15 @@ export default function DevicesScreen({ route, navigation }) {
       console.error('Erro ao adicionar dispositivo', err);
       Alert.alert('Erro', 'Não foi possível adicionar o dispositivo');
     }
+  }
+
+  function toggleDevice(deviceId) {
+    setActiveDeviceId(deviceId)
+    setDevices(prev =>
+      prev.map(d =>
+        d._id === deviceId ? { ...d, isOn: !d.isOn } : d
+      )
+    );
   }
 
   useFocusEffect(
@@ -129,6 +136,41 @@ export default function DevicesScreen({ route, navigation }) {
     );
   }
 
+  // Componente de card animado
+  const AnimatedDeviceCard = ({ item }) => {
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+      if (item.id === activeDeviceId) {
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 6,
+        tension: 80,
+        useNativeDriver: true,
+      }).start();
+    }
+  },[activeDeviceId]);
+
+    const borderColor = item.isOn ? '#00cc00' : '#ccc';
+    const iconColor = item.isOn ? '#00cc00' : '#333';
+
+    return (
+      <Animated.View style={{ transform: [{ scale: scaleAnim }], marginBottom: 10, flex: 1, marginHorizontal: 5 }}>
+        <TouchableOpacity
+          style={[styles.deviceCard, { borderColor, borderWidth: 2 }]}
+          onPress={() => toggleDevice(item._id)}
+          onLongPress={() => navigation.navigate('DeviceActions', { device: item })}
+          activeOpacity={0.8}
+        >
+          <View style={styles.iconContainer}>
+            <Icon name={item.icon || 'devices'} size={40} color={iconColor} />
+          </View>
+          <Text style={styles.deviceName}>{item.name}</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       {devices.length === 0 ? (
@@ -144,18 +186,7 @@ export default function DevicesScreen({ route, navigation }) {
           numColumns={2}
           contentContainerStyle={styles.grid}
           columnWrapperStyle={{ justifyContent: 'space-between' }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.deviceCard}
-              onLongPress={() => navigation.navigate('DeviceActions', { device: item })}
-              activeOpacity={0.8}
-            >
-              <View style={styles.iconContainer}>
-                <Icon name={item.icon || 'devices'} size={40} color="#333" />
-              </View>
-              <Text style={styles.deviceName}>{item.name}</Text>
-            </TouchableOpacity>
-          )}
+          renderItem={({ item }) => <AnimatedDeviceCard item={item} />}
         />
       )}
 
@@ -206,7 +237,7 @@ export default function DevicesScreen({ route, navigation }) {
 
             {/* Escolher ícone */}
             <Text style={{ marginTop: 10, fontWeight: 'bold'}}>Escolha um ícone:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10}}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
               {[
                 'lightbulb',
                 'light-switch',

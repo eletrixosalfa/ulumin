@@ -5,7 +5,7 @@ module.exports = [
   },
   {
     model: 'Blinds',
-    actions: ['Abrir', 'Fechar'],
+    actions: ['Abrir', 'Fechar', 'Parar'],
   },
   {
     model: 'Sensors',

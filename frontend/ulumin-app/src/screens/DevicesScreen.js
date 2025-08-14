@@ -58,7 +58,7 @@ export default function DevicesScreen({ route, navigation }) {
     }
   }
 
-  // Ao clicar no +, abre direto o modal de adicionar dispositivo e busca dispositivos reais
+  // Ao clicar no +, abre direto o modal de adicionar dispositivo e procurar dispositivos reais
   useEffect(() => {
     navigation.setOptions({
       title: `Dispositivos - ${roomName}`,

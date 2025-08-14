@@ -1,9 +1,15 @@
-const mongoose = require('mongoose');
-
-const deviceCatalogSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  category: { type: String, required: true },
-  icon: { type: String },
-}, { timestamps: true });
-
-module.exports = mongoose.model('DeviceCatalog', deviceCatalogSchema);
+module.exports = [
+  {
+    model: 'Lights',
+    actions: ['Ligar', 'Desligar', 'Mudar cor', 'Temporizar'],
+  },
+  {
+    model: 'Blinds',
+    actions: ['Abrir', 'Fechar'],
+  },
+  {
+    model: 'Sensors',
+    actions: ['Ler valor'],
+  },
+  // Adicionar mais se necessário
+];

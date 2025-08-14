@@ -25,6 +25,8 @@ import {
   deleteCategory
 } from '../services/categoriesService';
 
+import { discoverDevices } from '../services/mqttService';
+
 import styles from '../styles/DevicesScreen.styles';
 
 export default function DevicesScreen({ route, navigation }) {
@@ -49,7 +51,11 @@ export default function DevicesScreen({ route, navigation }) {
   const [newDeviceIcon, setNewDeviceIcon] = useState('devices');
 
   const [selectedExistingDevice, setSelectedExistingDevice] = useState(null);
-  
+
+  // Novos estados para dispositivos descobertos via MQTT
+  const [discoveredDevices, setDiscoveredDevices] = useState([]);
+  const [loadingDiscoveredDevices, setLoadingDiscoveredDevices] = useState(false);
+
   useEffect(() => {
     fetchCategories();
     fetchDevicesInRoom();
@@ -105,6 +111,19 @@ export default function DevicesScreen({ route, navigation }) {
     setNewDeviceName('');
     setNewDeviceIcon('devices');
     setSelectedExistingDevice(null);
+
+    // Buscar dispositivos reais via MQTT
+    setLoadingDiscoveredDevices(true);
+    setDiscoveredDevices([]);
+    try {
+      const found = await discoverDevices();
+      setDiscoveredDevices(found);
+    } catch (err) {
+      setDiscoveredDevices([]);
+      console.error('Erro ao descobrir dispositivos MQTT:', err);
+    } finally {
+      setLoadingDiscoveredDevices(false);
+    }
   }
 
   async function handleAddCategory() {
@@ -123,9 +142,47 @@ export default function DevicesScreen({ route, navigation }) {
       setNewDeviceName('');
       setNewDeviceIcon('devices');
       setSelectedExistingDevice(null);
+
+      // Buscar dispositivos reais via MQTT
+      setLoadingDiscoveredDevices(true);
+      setDiscoveredDevices([]);
+      try {
+        const found = await discoverDevices();
+        setDiscoveredDevices(found);
+      } catch (err) {
+        setDiscoveredDevices([]);
+        console.error('Erro ao descobrir dispositivos MQTT:', err);
+      } finally {
+        setLoadingDiscoveredDevices(false);
+      }
     } catch (err) {
       console.error('Erro ao criar categoria:', err);
       Alert.alert('Erro', 'Não foi possível criar a categoria.');
+    }
+  }
+
+  async function handleAddDeviceFromDiscovered(device) {
+    try {
+      const createdDevice = await createDevice({
+        name: device.name,
+        category: selectedCategory._id,
+        room: roomId,
+        icon: newDeviceIcon || 'devices',
+        mqttId: device.id, // opcional: guardar id real do dispositivo
+        model: device.model // opcional: guardar modelo
+      });
+
+      setCategoryDevices(prev => [...prev, createdDevice]);
+      setDevices(prev => [...prev, createdDevice]);
+      setModalDeviceVisible(false);
+      setNewDeviceName('');
+      setNewDeviceIcon('devices');
+      setSelectedCategory(null);
+      setSelectedExistingDevice(null);
+      setDiscoveredDevices([]);
+    } catch (err) {
+      console.error('Erro ao adicionar dispositivo real:', err);
+      Alert.alert('Erro', 'Não foi possível adicionar o dispositivo real.');
     }
   }
 
@@ -201,33 +258,32 @@ export default function DevicesScreen({ route, navigation }) {
   }
 
   async function handleDeleteCategory(categoryId) {
-  Alert.alert(
-    'Confirmar exclusão',
-    'Tem certeza que deseja eliminar esta categoria?',
-    [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Eliminar',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteCategory(categoryId);
-            setCategories(prev => prev.filter(cat => cat._id !== categoryId));
+    Alert.alert(
+      'Confirmar exclusão',
+      'Tem certeza que deseja eliminar esta categoria?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteCategory(categoryId);
+              setCategories(prev => prev.filter(cat => cat._id !== categoryId));
 
-            // Se a categoria removida estiver selecionada, reset
-            if (selectedCategory?._id === categoryId) {
-              setSelectedCategory(null);
-              setModalDeviceVisible(false);
+              if (selectedCategory?._id === categoryId) {
+                setSelectedCategory(null);
+                setModalDeviceVisible(false);
+              }
+            } catch (err) {
+              console.error('Erro ao eliminar categoria:', err);
+              Alert.alert('Erro', 'Não foi possível eliminar a categoria.');
             }
-          } catch (err) {
-            console.error('Erro ao eliminar categoria:', err);
-            Alert.alert('Erro', 'Não foi possível eliminar a categoria.');
-          }
+          },
         },
-      },
-    ]
-  );
-}
+      ]
+    );
+  }
 
   useEffect(() => {
     navigation.setOptions({
@@ -279,29 +335,25 @@ export default function DevicesScreen({ route, navigation }) {
           contentContainerStyle={styles.grid}
           columnWrapperStyle={{ justifyContent: 'space-between' }}
           renderItem={({ item }) => (
-    <TouchableOpacity
-      style={styles.deviceCard}
-      onLongPress={() => navigation.navigate('DeviceActions', { device: item })}
-      activeOpacity={0.8}
-    >
-      {/* Ícone no topo, centralizado */}
-      <View style={styles.iconContainer}>
-        <Icon name={item.icon || 'devices'} size={40} color="#333" />
-      </View>
-      {/* Nome do dispositivo abaixo do ícone */}
-      <Text style={styles.deviceName}>{item.name}</Text>
-
-      {/* Botão eliminar abaixo do nome, centralizado */}
-      <TouchableOpacity
-        onPress={() => handleDeleteDevice(item._id)}
-        style={styles.deleteButton}
-      >
-        <Icon name="delete" size={24} color="#cc0000" />
-      </TouchableOpacity>
-    </TouchableOpacity>
-  )}
-/>  
-)}
+            <TouchableOpacity
+              style={styles.deviceCard}
+              onLongPress={() => navigation.navigate('DeviceActions', { device: item })}
+              activeOpacity={0.8}
+            >
+              <View style={styles.iconContainer}>
+                <Icon name={item.icon || 'devices'} size={40} color="#333" />
+              </View>
+              <Text style={styles.deviceName}>{item.name}</Text>
+              <TouchableOpacity
+                onPress={() => handleDeleteDevice(item._id)}
+                style={styles.deleteButton}
+              >
+                <Icon name="delete" size={24} color="#cc0000" />
+              </TouchableOpacity>
+            </TouchableOpacity>
+          )}
+        />
+      )}
 
       {/* Modal seleção / criação categoria */}
       <Modal visible={modalCategoryVisible} animationType="slide" transparent>
@@ -311,29 +363,29 @@ export default function DevicesScreen({ route, navigation }) {
 
             <ScrollView style={{ maxHeight: 200, marginVertical: 10 }}>
               {categories.map(cat => (
-        <View
-          key={cat._id}
-          style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}
-        >
-          <TouchableOpacity
-            style={{
-            flex: 1,
-            padding: 12,
-            backgroundColor: '#eee',
-            borderRadius: 8,
-            }}
-            onPress={() => onSelectCategory(cat)}
-            >
-            <Text style={{ fontSize: 16 }}>{cat.name}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handleDeleteCategory(cat._id)}
-            style={{ marginLeft: 10, padding: 6 }}
-          >
-            <Icon name="delete" size={24} color="#cc0000" />
-          </TouchableOpacity>
-        </View>
-))}
+                <View
+                  key={cat._id}
+                  style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}
+                >
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      padding: 12,
+                      backgroundColor: '#eee',
+                      borderRadius: 8,
+                    }}
+                    onPress={() => onSelectCategory(cat)}
+                  >
+                    <Text style={{ fontSize: 16 }}>{cat.name}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleDeleteCategory(cat._id)}
+                    style={{ marginLeft: 10, padding: 6 }}
+                  >
+                    <Icon name="delete" size={24} color="#cc0000" />
+                  </TouchableOpacity>
+                </View>
+              ))}
             </ScrollView>
 
             <Text style={{ marginTop: 10 }}>Ou adicione uma nova categoria:</Text>
@@ -380,6 +432,46 @@ export default function DevicesScreen({ route, navigation }) {
               Adicionar dispositivo em "{selectedCategory?.name}"
             </Text>
 
+            {/* Dispositivos reais descobertos via MQTT */}
+            <Text style={{ fontWeight: 'bold', marginBottom: 5, marginTop: 10 }}>
+              Dispositivos reais encontrados na rede:
+            </Text>
+            {loadingDiscoveredDevices ? (
+              <ActivityIndicator size="small" color="#007AFF" />
+            ) : discoveredDevices.length > 0 ? (
+              <ScrollView style={{ maxHeight: 120, marginBottom: 10 }}>
+                {discoveredDevices.map(device => (
+                  <TouchableOpacity
+                    key={device.id}
+                    onPress={() => handleAddDeviceFromDiscovered(device)}
+                    style={{
+                      padding: 8,
+                      backgroundColor: '#e0ffe0',
+                      borderRadius: 8,
+                      marginBottom: 5,
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Icon
+                        name="access-point"
+                        size={24}
+                        color="#007AFF"
+                        style={{ marginRight: 10 }}
+                      />
+                      <Text style={{ color: '#333' }}>
+                        {device.name} ({device.model}) - ID: {device.id}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            ) : (
+              <Text style={{ marginBottom: 10, fontStyle: 'italic' }}>
+                Nenhum dispositivo real encontrado.
+              </Text>
+            )}
+
+            {/* Dispositivos já existentes */}
             {loadingCategoryDevices ? (
               <ActivityIndicator size="small" color="#007AFF" />
             ) : categoryDevices.length > 0 ? (
@@ -431,6 +523,7 @@ export default function DevicesScreen({ route, navigation }) {
               </Text>
             )}
 
+            {/* Adicionar dispositivo manualmente */}
             <Text style={{ marginTop: 10 }}>
               {selectedExistingDevice
                 ? 'Você está duplicando este dispositivo.'
@@ -497,6 +590,7 @@ export default function DevicesScreen({ route, navigation }) {
                   setModalDeviceVisible(false);
                   setSelectedCategory(null);
                   setSelectedExistingDevice(null);
+                  setDiscoveredDevices([]);
                 }}
                 style={{ marginRight: 15 }}
               >

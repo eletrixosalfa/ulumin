@@ -54,3 +54,13 @@ export async function getMqttStatus() {
     throw error;
   }
 }
+
+export async function discoverDevices() {
+  try {
+    const response = await api.get('/mqttconfig/discover');
+    return response.data.devices;
+  } catch (error) {
+    console.error('Erro ao descobrir dispositivos:', error);
+    throw error;
+  }
+}

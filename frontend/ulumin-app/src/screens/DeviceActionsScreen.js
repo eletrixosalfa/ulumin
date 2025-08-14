@@ -2,14 +2,14 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Alert, ActivityIndicator, ScrollView, TouchableOpacity, Animated } from 'react-native';
 import { getDeviceActions, deleteDevice } from '../services/devicecatalogService';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import styles from '../styles/DeviceActionsScreen.styles'
+import styles from '../styles/DeviceActionsScreen.styles';
 
 export default function DeviceActionsScreen({ route, navigation }) {
-  const { device } = route.params;
+  const { device, isOn, onToggle } = route.params;
   const [actions, setActions] = useState([]);
   const [loading, setLoading] = useState(true);
   const pulseAnim = useRef(new Animated.Value(1)).current; 
-  const [activeAction, setActiveAction] = useState(null);
+  const [isDeviceOn, setIsDeviceOn] = useState(isOn);
 
   const iconMap = {
     'Ligar': 'power',
@@ -18,6 +18,7 @@ export default function DeviceActionsScreen({ route, navigation }) {
     'Temporizar': 'timer',
     'Abrir': 'window-open',
     'Fechar': 'window-closed',
+    'Parar' : 'stop',
     'Ler valor': 'eye',
   };
 
@@ -44,16 +45,21 @@ export default function DeviceActionsScreen({ route, navigation }) {
   }
 
   function handleActionPress(action) {
-  // Se já estava ativa, desativa; senão, ativa a selecionada
-  setActiveAction(prev => (prev === action ? null : action));
+    // Ligar/Desligar
+    if (action === 'Ligar' && !isDeviceOn) {
+      setIsDeviceOn(true);
+      onToggle(true);
+    } else if (action === 'Desligar' && isDeviceOn) {
+      setIsDeviceOn(false);
+      onToggle(false);
+    }
 
-  Animated.sequence([
-    Animated.timing(pulseAnim, { toValue: 1.2, duration: 150, useNativeDriver: true }),
-    Animated.timing(pulseAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
-  ]).start();
-
-  // Alert.alert('Ação', `A executar: ${action}`);
-}
+    // animação de pulso
+    Animated.sequence([
+      Animated.timing(pulseAnim, { toValue: 1.2, duration: 150, useNativeDriver: true }),
+      Animated.timing(pulseAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
+    ]).start();
+  }
 
   async function handleDelete() {
     Alert.alert(
@@ -84,7 +90,9 @@ export default function DeviceActionsScreen({ route, navigation }) {
       ) : actions.length > 0 ? (
         <View style={styles.actionsContainer}>
           {actions.map(action => {
-            const isActive = activeAction === action;
+            const isPowerAction = action === 'Ligar' || action === 'Desligar';
+            const isActive = (action === 'Ligar' && isDeviceOn) || (action === 'Desligar' && !isDeviceOn);
+
             return (
               <Animated.View key={action} style={{ transform: [{ scale: isActive ? pulseAnim : 1 }] }}>
                 <TouchableOpacity

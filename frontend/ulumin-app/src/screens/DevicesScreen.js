@@ -92,7 +92,6 @@ export default function DevicesScreen({ route, navigation }) {
         mqttId: device.id,
         ...(device.model ? { model: device.model } : {}),
       });
-      setDevices(prev => [])
       setDevices(prev => [...prev, { ...createdDevice, isOn: false }]);
       setModalDeviceVisible(false);
       setDiscoveredDevices([]);
@@ -141,7 +140,7 @@ export default function DevicesScreen({ route, navigation }) {
     const scaleAnim = useRef(new Animated.Value(1)).current;
 
     useEffect(() => {
-      if (item.id === activeDeviceId) {
+      if (item._id === activeDeviceId) {
       Animated.spring(scaleAnim, {
         toValue: 1,
         friction: 6,
@@ -159,7 +158,18 @@ export default function DevicesScreen({ route, navigation }) {
         <TouchableOpacity
           style={[styles.deviceCard, { borderColor, borderWidth: 2 }]}
           onPress={() => toggleDevice(item._id)}
-          onLongPress={() => navigation.navigate('DeviceActions', { device: item })}
+    onLongPress={() => navigation.navigate('DeviceActions', {
+  device: item,
+  isOn: item.isOn,
+  onToggle: (newIsOn) => {
+    setDevices(prev =>
+      prev.map(d =>
+        d._id === item._id ? { ...d, isOn: newIsOn } : d
+      )
+    );
+  }
+})}
+
           activeOpacity={0.8}
         >
           <View style={styles.iconContainer}>

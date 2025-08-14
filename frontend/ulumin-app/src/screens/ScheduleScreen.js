@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Modal,
   Button,
-  Switch,
   Platform,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
@@ -17,10 +16,7 @@ import {
   updateSchedule,
   deleteSchedule as deleteScheduleService,
 } from '../services/scheduleService';
-import {
-  getRooms,
-} from '../services/catalogdevicesService';
-import { getCategories } from '../services/categoriesService';
+import { getRooms } from '../services/catalogdevicesService';
 import styles from '../styles/ScheduleScreen.styles';
 import { getDevicesByRoom } from '../services/devicesService';
 
@@ -42,9 +38,6 @@ export default function ScheduleScreen() {
 
   const [rooms, setRooms] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
-
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
 
   const [devices, setDevices] = useState([]);
   const [device, setDevice] = useState('');
@@ -72,52 +65,28 @@ export default function ScheduleScreen() {
 
   useEffect(() => {
     if (selectedRoom) {
-      fetchCategories(selectedRoom);
+      fetchDevices(selectedRoom);
+    } else {
+      setDevices([]);
+      setDevice('');
     }
   }, [selectedRoom]);
 
-  async function fetchCategories(roomId) {
+  async function fetchDevices(roomId) {
     try {
-      const catList = await getCategories(roomId);
-      setCategories(catList);
-      if (catList.length > 0) {
-        setSelectedCategory(catList[0]._id);
+      const devicesList = await getDevicesByRoom(roomId);
+      setDevices(devicesList);
+      if (devicesList.length > 0) {
+        setDevice(devicesList[0]._id);
       } else {
-        setSelectedCategory(null);
-        setDevices([]);
+        setDevice('');
       }
     } catch (e) {
-      console.error('Erro ao carregar categorias:', e);
-      setCategories([]);
-      setSelectedCategory(null);
-    }
-  }
-
-useEffect(() => {
-  if (selectedRoom && selectedCategory) {
-    fetchDevices(selectedRoom, selectedCategory);
-  } else {
-    setDevices([]);
-    setDevice('');
-  }
-}, [selectedRoom, selectedCategory]);
-
-
-  async function fetchDevices(roomId, categoryId) {
-  try {
-    const devicesList = await getDevicesByRoom(roomId, categoryId);
-    setDevices(devicesList);
-    if (devicesList.length > 0) {
-      setDevice(devicesList[0]._id);
-    } else {
+      console.error('Erro ao carregar dispositivos:', e);
+      setDevices([]);
       setDevice('');
     }
-  } catch (e) {
-    console.error('Erro ao carregar dispositivos:', e);
-    setDevices([]);
-    setDevice('');
   }
-}
 
   async function fetchSchedules() {
     setLoading(true);
@@ -153,7 +122,6 @@ useEffect(() => {
     setEditingSchedule(null);
     setSelectedRoom(rooms.length > 0 ? rooms[0]._id : null);
     setDevice(devices.length > 0 ? devices[0]._id : '');
-    setSelectedCategory(null);
     setAction('on');
     setTime(new Date());
     setRepeatDays([]);
@@ -231,19 +199,19 @@ useEffect(() => {
               {editingSchedule ? 'Editar Agendamento' : 'Novo Agendamento'}
             </Text>
 
-            <Text>Divisão:</Text>
+            <Text style={styles.label}>Divisão:</Text>
             <Picker selectedValue={selectedRoom} onValueChange={setSelectedRoom}>
               {rooms.map(r => <Picker.Item key={r._id} label={r.name} value={r._id} />)}
             </Picker>
 
-            <Text>Dispositivo:</Text>
+            <Text style={styles.label}>Dispositivo:</Text>
             <Picker selectedValue={device} onValueChange={setDevice}>
               {devices.map((d) => (
                 <Picker.Item key={d._id} label={d.name} value={d._id} />
               ))}
             </Picker>
 
-            <Text style={{ marginBottom: 5 }}>Ação:</Text>
+            <Text style={{fontWeight: 'bold', marginBottom: 5 }}>Ação:</Text>
             <View style={{ flexDirection: 'row', marginBottom: 10 }}>
               <TouchableOpacity
                 style={[styles.actionBtn, action === 'on' && styles.actionBtnSelected]}
@@ -259,7 +227,7 @@ useEffect(() => {
               </TouchableOpacity>
             </View>
 
-            <Text>Hora:</Text>
+            <Text style={styles.label}>Hora:</Text>
             <TouchableOpacity onPress={() => setShowTimePicker(true)}>
               <Text style={styles.timeText}>{time.toTimeString().slice(0, 5)}</Text>
             </TouchableOpacity>
@@ -277,7 +245,7 @@ useEffect(() => {
               />
             )}
 
-            <Text>Dias da semana:</Text>
+            <Text style={styles.label}>Dias da semana:</Text>
             <View style={styles.daysContainer}>
               {daysOfWeek.map((d) => (
                 <TouchableOpacity

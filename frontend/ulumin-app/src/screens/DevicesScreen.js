@@ -17,20 +17,16 @@ import {
   deleteDevice,
 } from '../services/devicesService';
 
-import { getCategories } from '../services/categoriesService';
 import { discoverDevices } from '../services/mqttService';
 
 import styles from '../styles/DevicesScreen.styles';
 
-import {useFocusEffect} from '@react-navigation/native'
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function DevicesScreen({ route, navigation }) {
   const { roomId, roomName } = route.params;
 
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [devices, setDevices] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
   const [loadingDevices, setLoadingDevices] = useState(false);
   const [error, setError] = useState(null);
 
@@ -45,7 +41,6 @@ export default function DevicesScreen({ route, navigation }) {
   const [newDeviceIcon, setNewDeviceIcon] = useState('devices');
 
   useEffect(() => {
-    fetchCategories();
     fetchDevicesInRoom();
   }, []);
 
@@ -60,23 +55,6 @@ export default function DevicesScreen({ route, navigation }) {
       console.error(err);
     } finally {
       setLoadingDevices(false);
-    }
-  }
-
-  async function fetchCategories() {
-    setLoadingCategories(true);
-    setError(null);
-    try {
-      const cats = await getCategories();
-      setCategories(cats);
-      if (cats.length > 0) setSelectedCategory(cats[0]);
-    } catch (err) {
-      setError('Erro ao carregar categorias.');
-      setCategories([]);
-      setSelectedCategory(null);
-      console.error(err);
-    } finally {
-      setLoadingCategories(false);
     }
   }
 
@@ -110,14 +88,9 @@ export default function DevicesScreen({ route, navigation }) {
   }, [navigation, roomName]);
 
   async function handleAddDeviceFromDiscovered(device) {
-    if (!selectedCategory) {
-      Alert.alert('Erro', 'Nenhuma categoria disponível.');
-      return;
-    }
     try {
       const createdDevice = await createDevice({
         name: device.name,
-        category: selectedCategory._id,
         room: roomId,
         icon: device.icon || 'devices',
         mqttId: device.id,
@@ -134,17 +107,17 @@ export default function DevicesScreen({ route, navigation }) {
     }
   }
 
-   useFocusEffect(
+  useFocusEffect(
     React.useCallback(() => {
       fetchDevicesInRoom();
     }, [roomId])
   );
 
-  if (loadingCategories || loadingDevices) {
+  if (loadingDevices) {
     return (
       <View style={styles.containerCentered}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text>A carregar categorias e dispositivos...</Text>
+        <Text>A carregar dispositivos...</Text>
       </View>
     );
   }

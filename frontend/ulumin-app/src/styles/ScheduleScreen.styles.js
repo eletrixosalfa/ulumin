@@ -19,7 +19,11 @@ export default StyleSheet.create({
     borderRadius: 8,
     padding: 20,
   },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 12 },
+  modalTitle: { 
+    textAlign: 'center',
+    fontSize: 18, 
+    fontWeight: 'bold',
+    marginBottom: 12 },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -52,9 +56,11 @@ export default StyleSheet.create({
   dayBtn: {
     borderWidth: 1,
     borderColor: '#666',
-    padding: 6,
+    paddingVertical: 8,
     margin: 4,
     borderRadius: 4,
+    minWidth: 30,
+    minHeight: 20,
     width: 32,
     alignItems: 'center',
   },
@@ -70,4 +76,7 @@ export default StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 20,
   },
+  label: {
+    fontWeight: 'bold',
+  }
 });

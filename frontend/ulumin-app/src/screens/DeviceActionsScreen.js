@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button, Alert, ActivityIndicator, ScrollView } from 'react-native';
-import { getDeviceActions, deleteDevice } from '../services/devicesService';
+import { getDeviceActions } from '../services/devicecatalogService';
+import { deleteDevice } from '../services/devicecatalogService';
 
 export default function DeviceActionsScreen({ route, navigation }) {
   const { device } = route.params;
@@ -8,16 +9,17 @@ export default function DeviceActionsScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchActions();
-  }, []);
+    if (device?.model) fetchActions();
+  }, [device.model]);
 
   async function fetchActions() {
     setLoading(true);
     try {
-      // Exemplo: busca ações pelo modelo
+      // Busca ações pelo modelo do device
       const result = await getDeviceActions(device.model);
-      setActions(result.actions || []);
+      setActions(result || []);
     } catch (err) {
+      console.error('Erro ao buscar ações:', err);
       setActions([]);
     } finally {
       setLoading(false);
@@ -50,18 +52,25 @@ export default function DeviceActionsScreen({ route, navigation }) {
     <ScrollView contentContainerStyle={{ padding: 20 }}>
       <Text style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 10 }}>{device.name}</Text>
       <Text style={{ marginBottom: 20 }}>Modelo: {device.model}</Text>
+
       {loading ? (
         <ActivityIndicator size="large" />
-      ) : (
+      ) : actions.length > 0 ? (
         actions.map(action => (
-          <Button
-            key={action}
-            title={action}
-            onPress={() => {/* implementar ação específica */}}
-            style={{ marginBottom: 10 }}
-          />
+          <View key={action} style={{ marginBottom: 10 }}>
+            <Button
+              title={action}
+              onPress={() => {
+                // TODO: implementar ação específica
+                Alert.alert('Ação', `Executando: ${action}`);
+              }}
+            />
+          </View>
         ))
+      ) : (
+        <Text>Nenhuma ação disponível para este modelo.</Text>
       )}
+
       <View style={{ marginTop: 30 }}>
         <Button
           title="Excluir dispositivo"

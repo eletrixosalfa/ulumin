@@ -16,7 +16,7 @@ import {
   updateSchedule,
   deleteSchedule as deleteScheduleService,
 } from '../services/scheduleService';
-import { getRooms } from '../services/catalogdevicesService';
+import { getRooms } from '../services/devicecatalogService';
 import styles from '../styles/ScheduleScreen.styles';
 import { getDevicesByRoom } from '../services/devicesService';
 

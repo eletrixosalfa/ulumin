@@ -14,7 +14,6 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   getDevicesByRoom,
   createDevice,
-  deleteDevice,
 } from '../services/devicesService';
 
 import { discoverDevices } from '../services/mqttService';
@@ -50,6 +49,7 @@ export default function DevicesScreen({ route, navigation }) {
     try {
       const data = await getDevicesByRoom(roomId);
       setDevices(data);
+      console.log(data);
     } catch (err) {
       setError('Erro ao carregar dispositivos da divisão.');
       console.error(err);
@@ -94,7 +94,7 @@ export default function DevicesScreen({ route, navigation }) {
         room: roomId,
         icon: device.icon || 'devices',
         mqttId: device.id,
-        model: device.model,
+        ...(device.model ? {model: device.model} : {}),
       });
       setDevices(prev => [...prev, createdDevice]);
       setModalDeviceVisible(false);

@@ -11,5 +11,9 @@ module.exports = [
     model: 'Sensors',
     actions: ['Ler valor'],
   },
-  // Adicionar mais se necessário
+  {
+    model: 'Switches',
+    actions: ['Ligar', 'Desligar'],
+  }
+  // Futuramente adicionar os necessários
 ];

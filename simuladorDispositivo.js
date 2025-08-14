@@ -17,3 +17,4 @@ function criarDispositivo(id, model, name) {
 criarDispositivo('simulador-01', 'Blinds', 'Estore Teste');
 criarDispositivo('simulador-02', 'Lights', 'Lampada Teste');
 criarDispositivo('simulador-03', 'Sensors', 'Sensor Teste');
+criarDispositivo('simulador-04', 'Switches', 'Interruptor Teste');

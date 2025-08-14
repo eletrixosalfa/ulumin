@@ -2,15 +2,15 @@ const Device = require('../models/Device');
 
 exports.createDevice = async (req, res) => {
   try {
-    const { name, icon, status, ipAddress, category, room } = req.body;
+    const { name, icon, status, ipAddress, room, model } = req.body;
 
     const newDevice = new Device({
       name,
       icon,
       status,
       ipAddress,
-      category,
-      room,         
+      room,
+      model,         
       owner: req.user.userId
     });
 
@@ -21,30 +21,15 @@ exports.createDevice = async (req, res) => {
   }
 };
 
-exports.getDevicesByCategory = async (req, res) => {
-  try {
-    const { categoryId } = req.params;
-
-    const devices = await Device.find({
-      owner: req.user.userId,
-      category: categoryId
-    }).populate('category');
-
-    res.status(200).json(devices);
-  } catch (err) {
-    res.status(500).json({ message: 'Erro ao obter dispositivos.', error: err.message });
-  }
-};
-
-// Receber dispositivos por divisão
 exports.getDevicesByRoom = async (req, res) => {
   try {
     const { roomId } = req.params;
+    if (!roomId) return res.status(400).json({ message: 'RoomId inválido' });
 
     const devices = await Device.find({
       owner: req.user.userId,
       room: roomId
-    }).populate('category');
+    }).lean();
 
     res.status(200).json(devices);
   } catch (err) {
@@ -52,22 +37,6 @@ exports.getDevicesByRoom = async (req, res) => {
   }
 };
 
-// Receber dispositivos filtrados por categoria e divisão
-exports.getDevicesByCategoryAndRoom = async (req, res) => {
-  try {
-    const { categoryId, roomId } = req.params;
-
-    const devices = await Device.find({
-      owner: req.user.userId,
-      category: categoryId,
-      room: roomId
-    }).populate('category');
-
-    res.status(200).json(devices);
-  } catch (err) {
-    res.status(500).json({ message: 'Erro ao obter dispositivos por categoria e divisão.', error: err.message });
-  }
-};
 
 exports.updateDevice = async (req, res) => {
   try {

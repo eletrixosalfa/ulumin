@@ -6,14 +6,8 @@ const deviceController = require('../controllers/deviceController');
 // Criar dispositivo
 router.post('/', auth, deviceController.createDevice);
 
-// Obter dispositivos por categoria
-router.get('/category/:categoryId', auth, deviceController.getDevicesByCategory);
-
 // Obter dispositivos por divisão (room)
 router.get('/room/:roomId', auth, deviceController.getDevicesByRoom);
-
-// Obter dispositivos por categoria e divisão
-router.get('/category/:categoryId/room/:roomId', auth, deviceController.getDevicesByCategoryAndRoom);
 
 // Atualizar dispositivo
 router.put('/:id', auth, deviceController.updateDevice);

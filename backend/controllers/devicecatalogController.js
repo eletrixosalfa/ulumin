@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const deviceCatalog = require('../models/deviceCatalog');
+const deviceCatalog = require('../models/DeviceCatalog');
 
 router.get('/model/:model', (req, res) => {
   const { model } = req.params;

@@ -22,9 +22,9 @@ export default function DeviceActionsScreen({ route, navigation }) {
     'Ler valor': 'eye',
   };
 
-  const [selectedAction, setSelectedAction] = useState(
-  isDeviceOn ? 'Abrir' : 'Parar' 
-);
+const initialAction = isDeviceOn ? (route.params.lastAction || 'Abrir') : 'Parar';
+const [selectedAction, setSelectedAction] = useState(initialAction);
+
 
 const [userSelected, setUserSelected] = useState(false);
 
@@ -39,9 +39,8 @@ const [userSelected, setUserSelected] = useState(false);
   }, [device.model]);
 
   useEffect(() => {
-  if (!userSelected && actions.lenght > 0) {
+  if (!userSelected && actions.length > 0) {
     if (isDeviceOn) {
-      // Se o dispositivo está ligado, escolha a primeira ação "ativa" possível
       const activeAction = actions.find(a => ['Abrir', 'Fechar', 'Ligar'].includes(a));
       setSelectedAction(activeAction || actions[0]);
     } else {
@@ -110,9 +109,6 @@ const [userSelected, setUserSelected] = useState(false);
     Animated.timing(pulseAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
   ]).start();
 }
-
-
-
 
   async function handleDelete() {
     Alert.alert(

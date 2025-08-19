@@ -1,6 +1,6 @@
 import api from '../api/axios';
 
-// Função para obter dados do perfil do usuário
+// Função para obter dados do perfil do utilizador
 export async function getProfile() {
   try {
     const response = await api.get('/updateuser/profile');
@@ -11,7 +11,7 @@ export async function getProfile() {
   }
 }
 
-// Função para atualizar nome e email do usuário
+// Função para atualizar nome e email do utilizador
 export async function updateProfile(profileData) {
   try {
     const response = await api.put('/updateuser/profile', profileData);
@@ -22,7 +22,7 @@ export async function updateProfile(profileData) {
   }
 }
 
-// Função para alterar senha do usuário
+// Função para alterar senha do utilizador
 export async function changePassword(currentPassword, newPassword) {
   try {
     const response = await api.put('/updateuser/password', {

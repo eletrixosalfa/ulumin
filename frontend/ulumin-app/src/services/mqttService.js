@@ -44,7 +44,7 @@ export async function resetMqttConfig() {
   }
 }
 
-// Buscar status atual da conexão MQTT
+// Procurar status atual da conexão MQTT
 export async function getMqttStatus() {
   try {
     const response = await api.get('/mqttconfig/status');

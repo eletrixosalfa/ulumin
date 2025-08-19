@@ -25,24 +25,10 @@ export async function deleteDevice(deviceId) {
   return response.data;
 }
 
-// Procurar dispositivos por categoria
-export async function getDevicesByCategory(categoryId) {
-  const headers = await getAuthHeaders();
-  const response = await axios.get(`${API_BASE_URL}/devices/category/${categoryId}`, { headers });
-  return response.data;
-}
-
 // Procurar dispositivos por divisão
 export async function getDevicesByRoom(roomId) {
   const headers = await getAuthHeaders();
   const response = await axios.get(`${API_BASE_URL}/devices/room/${roomId}`, { headers });
-  return response.data;
-}
-
-// Procurar dispositivos por categoria e divisão
-export async function getDevicesByCategoryAndRoom(categoryId, roomId) {
-  const headers = await getAuthHeaders();
-  const response = await axios.get(`${API_BASE_URL}/devices/category/${categoryId}/room/${roomId}`, { headers });
   return response.data;
 }
 
@@ -53,7 +39,7 @@ export async function addActionToDevice(deviceId, action) {
   return response.data;
 }
 
-// Remover ação de um dispositivo (por índice)
+// Remover ação de um dispositivo
 export async function removeActionFromDevice(deviceId, index) {
   const headers = await getAuthHeaders();
   const response = await axios.delete(`${API_BASE_URL}/devices/${deviceId}/actions/${index}`, { headers });

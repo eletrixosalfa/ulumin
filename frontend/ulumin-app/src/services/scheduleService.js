@@ -17,8 +17,8 @@ export async function getSchedules() {
     const response = await axios.get(`${API_BASE_URL}/schedules`, { headers });
     return response.data;
   } catch (error) {
-    console.error('Erro ao buscar schedules:', error.response?.data || error.message);
-    throw new Error('Erro ao buscar schedules');
+    console.error('Erro ao procurar schedules:', error.response?.data || error.message);
+    throw new Error('Erro ao procurar schedules');
   }
 }
 

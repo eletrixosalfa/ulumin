@@ -1,3 +1,5 @@
+// Vai guardar funções que vou usar em vários pontos da app
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export async function getToken() {

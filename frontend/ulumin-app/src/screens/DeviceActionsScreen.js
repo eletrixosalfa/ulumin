@@ -37,7 +37,7 @@ export default function DeviceActionsScreen({ route, navigation }) {
       const result = await getDeviceActions(device.model);
       setActions(result || []);
     } catch (err) {
-      console.error('Erro ao buscar ações:', err);
+      console.error('Erro ao procurar ações:', err);
       setActions([]);
     } finally {
       setLoading(false);

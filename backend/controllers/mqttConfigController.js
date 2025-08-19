@@ -164,7 +164,7 @@ exports.discoverDevices = async (req, res) => {
     const foundDevices = [];
     mqttService.announceDevices();
 
-    // Escuta respostas por 3 segundos
+    // Ouve respostas por 3 segundos
     mqttService.listenAnnounceResponses((deviceInfo) => {
       foundDevices.push(deviceInfo);
     });

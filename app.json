@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "7c3916a6-61e3-44b3-838a-b6ff9fec904c"
+      }
+    },
+    "android": {
+      "package": "ulumin.app"
+    }
+  }
+}

@@ -2,10 +2,10 @@ import api from '../api/axios';
 
 export async function getRooms() {
   try {
-    const response = await api.get('/rooms'); // ajusta endpoint se necessário
+    const response = await api.get('/rooms');
     return response.data;
   } catch (error) {
-    console.error('Erro ao buscar divisões:', error);
+    console.error('Erro ao procurar divisões:', error);
     throw error;
   }
 }

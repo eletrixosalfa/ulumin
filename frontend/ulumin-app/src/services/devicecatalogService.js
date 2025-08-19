@@ -11,7 +11,7 @@ async function getAuthHeaders() {
   };
 }
 
-// Buscar rooms
+// Procurar divisões
 export async function getRooms() {
   try {
     const headers = await getAuthHeaders();
@@ -23,7 +23,7 @@ export async function getRooms() {
   }
 }
 
-// Buscar ações de dispositivo por modelo
+// Procurar ações de dispositivo por modelo
 export async function getDeviceActions(model) {
   if (!model) return [];
   try {
@@ -31,7 +31,7 @@ export async function getDeviceActions(model) {
     const response = await axios.get(`${API_BASE_URL}/devicecatalog/model/${model}`, { headers });
     return response.data.actions || [];
   } catch (error) {
-    console.error('Erro ao buscar ações do dispositivo:', error.response?.data || error.message);
+    console.error('Erro ao procurar ações do dispositivo:', error.response?.data || error.message);
     return [];
   }
 } 

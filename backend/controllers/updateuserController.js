@@ -1,12 +1,12 @@
 const bcrypt = require('bcrypt');
-const updateuser = require('../models/UpdateUser'); // model chamado updateuser
+const updateuser = require('../models/UpdateUser');
 
 exports.getProfile = async (req, res) => {
   try {
     const user = await updateuser.findById(req.user.userId).select('-password');
     res.json(user);
   } catch (err) {
-    res.status(500).json({ message: 'Erro ao procurar perfil do usuário' });
+    res.status(500).json({ message: 'Erro ao procurar perfil do utilizador' });
   }
 };
 
@@ -29,10 +29,10 @@ exports.changePassword = async (req, res) => {
 
   try {
     const user = await updateuser.findById(req.user.userId);
-    console.log("Usuário encontrado:", user);
+    console.log("Utilizador encontrado:", user);
 
     if (!user) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
+      return res.status(404).json({ message: 'Utilizador não encontrado' });
     }
 
     console.log("Senha atual digitada:", currentPassword);

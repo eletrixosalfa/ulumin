@@ -42,7 +42,7 @@ export default function ScheduleScreen() {
   const [devices, setDevices] = useState([]);
   const [device, setDevice] = useState('');
   const [action, setAction] = useState('');
-  const [actionOptions, setActionOptions] = useState([]); // novas ações
+  const [actionOptions, setActionOptions] = useState([]); 
   const [time, setTime] = useState(new Date());
   const [repeatDays, setRepeatDays] = useState([]);
   const [showTimePicker, setShowTimePicker] = useState(false);

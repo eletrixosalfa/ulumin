@@ -36,24 +36,34 @@ export default function DevicesScreen({ route, navigation }) {
 
   const [activeDeviceId, setActiveDeviceId] = useState(null);
 
+  const devicesRef = useRef([]);
+
+
   useEffect(() => {
     fetchDevicesInRoom();
   }, []);
 
-  async function fetchDevicesInRoom() {
-    setLoadingDevices(true);
-    setError(null);
-    try {
-      const data = await getDevicesByRoom(roomId);
-      // adiciona isOn para cada dispositivo, se não existir
-      setDevices(data.map(d => ({ ...d, isOn: d.isOn || false })));
-    } catch (err) {
-      setError('Erro ao carregar dispositivos da divisão.');
-      console.error(err);
-    } finally {
-      setLoadingDevices(false);
-    }
+ async function fetchDevicesInRoom() {
+  setLoadingDevices(true);
+  setError(null);
+  try {
+    const data = await getDevicesByRoom(roomId);
+    // mantém isOn local se já existia
+    setDevices(prev => {
+      devicesRef.current = data.map(d => {
+        const localDevice = prev.find(pd => pd._id === d._id);
+        return { ...d, isOn: localDevice ? localDevice.isOn : (d.isOn || false) };
+      });
+      return devicesRef.current;
+    });
+  } catch (err) {
+    setError('Erro ao carregar dispositivos da divisão.');
+    console.error(err);
+  } finally {
+    setLoadingDevices(false);
   }
+}
+
 
   useEffect(() => {
     navigation.setOptions({
@@ -104,13 +114,13 @@ export default function DevicesScreen({ route, navigation }) {
   }
 
   function toggleDevice(deviceId) {
-    setActiveDeviceId(deviceId)
-    setDevices(prev =>
-      prev.map(d =>
-        d._id === deviceId ? { ...d, isOn: !d.isOn } : d
-      )
-    );
-  }
+  devicesRef.current = devicesRef.current.map(d =>
+    d._id === deviceId ? { ...d, isOn: !d.isOn } : d
+  );
+  setDevices([...devicesRef.current]);
+  setActiveDeviceId(deviceId);
+}
+
 
   useFocusEffect(
     React.useCallback(() => {
@@ -158,13 +168,13 @@ export default function DevicesScreen({ route, navigation }) {
         <TouchableOpacity
           style={[styles.deviceCard, { borderColor, borderWidth: 2 }]}
           onPress={() => toggleDevice(item._id)}
-    onLongPress={() => navigation.navigate('DeviceActions', {
-  device: item,
-  isOn: item.isOn,
-  onToggle: (newIsOn) => {
-    setDevices(prev =>
-      prev.map(d =>
-        d._id === item._id ? { ...d, isOn: newIsOn } : d
+          onLongPress={() => navigation.navigate('DeviceActions', {
+            device: item,
+            isOn: item.isOn,
+          onToggle: (newIsOn) => {
+            setDevices(prev =>
+              prev.map(d =>
+                d._id === item._id ? { ...d, isOn: newIsOn } : d
       )
     );
   }

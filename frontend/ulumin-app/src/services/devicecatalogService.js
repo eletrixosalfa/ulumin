@@ -18,8 +18,8 @@ export async function getRooms() {
     const response = await axios.get(`${API_BASE_URL}/rooms`, { headers });
     return response.data;
   } catch (error) {
-    console.error('Erro ao buscar rooms:', error.response?.data || error.message);
-    throw new Error('Erro ao buscar rooms');
+    console.error('Erro ao procurar divisões:', error.response?.data || error.message);
+    throw new Error('Erro ao procurar divisões.');
   }
 }
 

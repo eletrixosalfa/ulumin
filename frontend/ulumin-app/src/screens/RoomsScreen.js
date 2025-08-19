@@ -29,7 +29,6 @@ export default function RoomsScreen({ navigation }) {
 
   const { userToken, loading: authLoading } = useContext(AuthContext);
 
-
   const availableIcons = [
     'bed',
     'sofa',
@@ -42,7 +41,6 @@ useEffect(() => {
     fetchRooms();
   }
 }, [authLoading, userToken]);
-
 
   useEffect(() => {
     navigation.setOptions({

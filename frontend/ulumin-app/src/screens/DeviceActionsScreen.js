@@ -22,6 +22,13 @@ export default function DeviceActionsScreen({ route, navigation }) {
     'Ler valor': 'eye',
   };
 
+  const [selectedAction, setSelectedAction] = useState(
+  isDeviceOn ? 'Abrir' : 'Parar' 
+);
+
+const [userSelected, setUserSelected] = useState(false);
+
+
   useEffect(() => {
     if (device?.model) {
       fetchActions();
@@ -30,6 +37,20 @@ export default function DeviceActionsScreen({ route, navigation }) {
       setLoading(false);
     }
   }, [device.model]);
+
+  useEffect(() => {
+  if (!userSelected && actions.lenght > 0) {
+    if (isDeviceOn) {
+      // Se o dispositivo está ligado, escolha a primeira ação "ativa" possível
+      const activeAction = actions.find(a => ['Abrir', 'Fechar', 'Ligar'].includes(a));
+      setSelectedAction(activeAction || actions[0]);
+    } else {
+      const inactiveAction = actions.find(a => ['Parar', 'Desligar'].includes(a));
+      setSelectedAction(inactiveAction || actions[0]);
+    }
+  }
+}, [actions, isDeviceOn]);
+
 
   async function fetchActions() {
     setLoading(true);
@@ -44,22 +65,54 @@ export default function DeviceActionsScreen({ route, navigation }) {
     }
   }
 
-  function handleActionPress(action) {
-    // Ligar/Desligar
-    if (action === 'Ligar' && !isDeviceOn) {
-      setIsDeviceOn(true);
-      onToggle(true);
-    } else if (action === 'Desligar' && isDeviceOn) {
-      setIsDeviceOn(false);
-      onToggle(false);
-    }
+ function handleActionPress(action) {
+  setSelectedAction(action);
+  setUserSelected(true); 
 
-    // animação de pulso
-    Animated.sequence([
-      Animated.timing(pulseAnim, { toValue: 1.2, duration: 150, useNativeDriver: true }),
-      Animated.timing(pulseAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
-    ]).start();
+  switch(action) {
+    case 'Abrir':
+      if (!isDeviceOn) {
+        setIsDeviceOn(true);
+        onToggle(true);
+      }
+      break;
+    case 'Fechar':
+      if (!isDeviceOn) {
+        setIsDeviceOn(true);
+        onToggle(true);
+      }
+      break;
+    case 'Ligar':
+      if (!isDeviceOn) {
+        setIsDeviceOn(true);
+        onToggle(true);
+      }
+      break;
+    case 'Desligar':
+      if (isDeviceOn) {
+        setIsDeviceOn(false);
+        onToggle(false);
+      }
+      break;
+    case 'Parar':
+      if (isDeviceOn) {
+        setIsDeviceOn(false);
+        onToggle(false);
+      }
+      break;
+    // Para ações que não alteram isDeviceOn, apenas setSelectedAction
+    default:
+      break;
   }
+
+  Animated.sequence([
+    Animated.timing(pulseAnim, { toValue: 1.2, duration: 150, useNativeDriver: true }),
+    Animated.timing(pulseAnim, { toValue: 1, duration: 150, useNativeDriver: true }),
+  ]).start();
+}
+
+
+
 
   async function handleDelete() {
     Alert.alert(
@@ -90,8 +143,7 @@ export default function DeviceActionsScreen({ route, navigation }) {
       ) : actions.length > 0 ? (
         <View style={styles.actionsContainer}>
           {actions.map(action => {
-            const isPowerAction = action === 'Ligar' || action === 'Desligar';
-            const isActive = (action === 'Ligar' && isDeviceOn) || (action === 'Desligar' && !isDeviceOn);
+            const isActive = selectedAction === action;
 
             return (
               <Animated.View key={action} style={{ transform: [{ scale: isActive ? pulseAnim : 1 }] }}>

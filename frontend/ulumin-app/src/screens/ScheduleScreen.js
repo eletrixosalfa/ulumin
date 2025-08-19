@@ -76,7 +76,6 @@ export default function ScheduleScreen() {
   async function fetchDevices(roomId) {
     try {
       const devicesList = await getDevicesByRoom(roomId);
-      console.log('dispositivos carregados:', devicesList);
       setDevices(devicesList);
       if (devicesList.length > 0) {
         setDevice(devicesList[0]._id);
